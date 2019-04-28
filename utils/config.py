@@ -10,7 +10,9 @@ import toml
 __DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 CONFIG_FILENAME: str = 'config.toml'
-CONFIG_PATH: str = os.path.join(__DIR_PATH, '../..', CONFIG_FILENAME)
+CONFIG_PATH: str = os.path.join(__DIR_PATH, '..', CONFIG_FILENAME)
+
+DB_NAME: str = 'dbName'
 
 
 def __parse_config(filename: str) -> Dict[str, str]:
