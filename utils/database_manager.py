@@ -33,6 +33,12 @@ class DatabaseManager:
 			self.cur.execute('SELECT {} FROM {} WHERE {}'.format(selected_attributes, table_name, filters))
 		return self.cur.fetchall()
 
+	def has_rows(self, table_name: str, selected_attributes: str, filters: str = None) -> bool:
+		return self.count_rows(table_name, selected_attributes, filters) > 0
+
+	def count_rows(self, table_name: str, selected_attributes: str, filters: str = None) -> int:
+		return len(self.retrieve_rows(table_name, selected_attributes, filters))
+
 	def retrieve_items_by_seller(self) -> List:
 		pass
 

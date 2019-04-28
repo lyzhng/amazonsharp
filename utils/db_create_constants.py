@@ -34,6 +34,14 @@ EMPLOYEE = """
 	)
 """
 
+LOGIN_INFO = """
+	CREATE TABLE IF NOT EXISTS login_info(
+		email TINYTEXT PRIMARY KEY,
+		password CHAR(73) NOT NULL
+			CHECK(length(password) == 73)
+	)
+"""
+
 ORDER = """
 	CREATE TABLE IF NOT EXISTS order(
 		order_number INTEGER PRIMARY KEY,
