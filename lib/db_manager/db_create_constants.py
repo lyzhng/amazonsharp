@@ -52,6 +52,15 @@ ORDER = """
     )
 """
 
+HAS_A_SHOPPING_CART = """
+    CREATE TABLE IF NOT EXISTS has_a_shopping_cart(
+        customer_email TINYTEXT PRIMARY KEY,
+        cart_id INTEGER PRIMARY KEY,
+        FOREIGN KEY(customer_email) REFERENCES customer(email),
+        FOREIGN KEY(cart_id) REFERENCES items_in_shopping_cart(cart_id)
+    )
+"""
+
 SHOPPING_CART = """
     CREATE TABLE IF NOT EXISTS shopping_cart(
         cart_id INTEGER PRIMARY KEY
@@ -68,7 +77,7 @@ ITEM = """
         seller_email TINYTEXT PRIMARY KEY,
         item_id INTEGER PRIMARY KEY
             CHECK(item_id > 0),
-        quantity INTEGER DEFAULT 0 NOT NULL
+        quantity INTEGER DEFAULT 1 NOT NULL
             CHECK(quantity >= 0),
         price DOUBLE NOT NULL
             CHECK(price >= 0),
@@ -104,9 +113,9 @@ ITEMS_BOUGHT = """
 
 ITEMS_IN_SHOPPING_CART = """
     CREATE TABLE IF NOT EXISTS items_in_shopping_cart(
+        cart_id INTEGER PRIMARY KEY,
         seller_email TINYTEXT PRIMARY KEY,
         item_id INTEGER PRIMARY KEY,
-        cart_id INTEGER PRIMARY KEY,
         price DOUBLE NOT NULL
             CHECK(price >= 0),
         name TINYTEXT NOT NULL,
