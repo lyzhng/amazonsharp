@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}
+	Amazon#
+{% endblock %}
+
+{% block head_extras %}
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+{% endblock %}
+
+{% block content %}
+	{% if is_logged_in %}
+		<app data-logged-in-state="true"></app>
+	{% else %}
+		<app data-logged-in-state="false"></app>
+	{% endif %}
+	<script src="/index.js"></script>
+{% endblock %}

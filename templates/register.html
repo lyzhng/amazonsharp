@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}
+	Amazon# - Register
+{% endblock %}
+
+{% block content %}
+	{% with messages = get_flashed_messages() %}
+		{% if messages and messages[0].startswith('Error: ') %}
+			<app data-message="{{ messages[0] }}" data-message-type="error"></app>
+		{% elif messages %}
+			<app data-message="{{ messages[0] }}" data-message-type="success"></app>
+		{% else %}
+			<app data-message=""></app>
+		{% endif %}
+	{% endwith %}
+	<script type="text/javascript" src="/register.js"></script>
+{% endblock %}
+
