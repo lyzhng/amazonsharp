@@ -107,3 +107,6 @@ config.toml
 .DS_STORE
 
 data/amazonsharp.db
+
+web/node_modules
+web/public
