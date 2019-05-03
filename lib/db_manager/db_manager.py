@@ -4,7 +4,7 @@ from typing import List
 class DatabaseManager:
 
     def __init__(self, filename: str):  
-        self.conn = sqlite3.connect(filename) 
+        self.conn = sqlite3.connect(filename, check_same_thread=False) 
         self.cur = self.conn.cursor()
 
     def create_table(self, create_table_statement: str) -> None:
