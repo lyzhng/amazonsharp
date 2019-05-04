@@ -20,6 +20,7 @@ module.exports = {
 		allitems: 'allitems.js',
 		cart: 'cart.js',
 		item: 'item.js',
+		sellitems: 'sellitems.js',
     },
     output: {
         path: path.join(__dirname, 'public', 'components'),

@@ -4,6 +4,7 @@ import werkzeug.middleware.proxy_fix
 from views import api
 from views import customer
 from views import public
+from views import seller
 from lib.security import security
 
 
@@ -16,6 +17,7 @@ app.register_blueprint(api.API_VIEWS)
 app.register_blueprint(customer.CUSTOMER_VIEWS)
 app.register_blueprint(public.PUBLIC_VIEWS)
 app.register_blueprint(security.SECURITY)
+app.register_blueprint(seller.SELLER_VIEWS)
 
 app.wsgi_app = werkzeug.middleware.proxy_fix.ProxyFix(app.wsgi_app)
 app.secret_key = None
