@@ -15,15 +15,15 @@ from lib.security import security_utils
 SECURITY = flask.Blueprint('security', __name__)
 
 
-def login_required(seller_required: bool = False, admin_required: bool = False,
-                   developer_required: bool = False):
+def login_required(customer_required: bool = False, seller_required: bool = False,
+                   admin_required: bool = False, developer_required: bool = False):
     "Enforce that the user has the appropriate permissions to access the page."
     def actual_decorator(function):
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
             flask.session['next'] = flask.request.url
 
-            if is_logged_in(seller_required, admin_required,
+            if is_logged_in(customer_required, seller_required, admin_required,
                             developer_required):
                 return function(*args, **kwargs)
             return flask.redirect(flask.url_for('security.login_form'))
@@ -31,8 +31,8 @@ def login_required(seller_required: bool = False, admin_required: bool = False,
     return actual_decorator
 
 
-def is_logged_in(seller_required: bool = False, admin_required: bool = False,
-                 developer_required: bool = False) -> bool:
+def is_logged_in(customer_required: bool = False, seller_required: bool = False,
+                 admin_required: bool = False, developer_required: bool = False) -> bool:
     "Check if the user is loggged in with appropriate permissions or not."
     username = flask.session.get('username')
 
@@ -44,8 +44,10 @@ def is_logged_in(seller_required: bool = False, admin_required: bool = False,
         return True
     if seller_required and auth_manager.is_seller(username):
         return True
-    if not (seller_required or admin_required or developer_required) and \
-       auth_manager.is_registered(username):
+    if customer_required and auth_manager.is_customer(username):
+        return True
+    if not (customer_required or seller_required or admin_required or
+            developer_required) and auth_manager.is_registered(username):
         return True
 
     flask.session.pop('username')

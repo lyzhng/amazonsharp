@@ -23,6 +23,10 @@ def is_registered(username: str) -> bool:
     return __AUTH_MANAGER.has_rows('login_info', '*',
                                    ' email = "{}" '.format(username))
 
+def is_customer(username: str) -> bool:
+    "Check if user is a customer."
+    cond: str = ' email = "{}" AND role = "CUSTOMER" '.format(username)
+    return __AUTH_MANAGER.has_rows('login_info', '*', cond)
 
 def is_seller(username: str) -> bool:
     "Check if user is a seller."
