@@ -12,7 +12,7 @@
 	<v-form ref="form" method="post">
   		<v-text-field
     		v-model="username"
-    		:rules="[rules.minusername]"
+    		:rules="[rules.emailcheck]"
     		prepend-icon="account_circle"
     		label="Email Address"
 			name="username"
@@ -43,6 +43,14 @@
 		    required
 		    @click:append="showConfirmationPassword = !showConfirmationPassword"
 		    ></v-text-field>
+        <v-radio-group
+            v-model="role"
+            :rules="[rules.rolecheck]"
+            name="role"
+            row>
+            <v-radio label="Customer" value="CUSTOMER"></v-radio>
+            <v-radio label="Seller" value="SELLER"></v-radio>
+        </v-radio-group>
 
 		<v-layout row>
     		<v-btn flat small color="info" href="/login">Sign in instead</v-btn>
@@ -63,8 +71,15 @@ export default {
         confirmationPassword: '',
         showPassword: false,
         showConfirmationPassword: false,
+        role: '',
         rules: {
-            minusername: v => v.length >= 4 || 'Needs to be at least 4 characters',
+            emailcheck: v => {
+                const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return pattern.test(v) || 'Must be a valid email address';
+            },
+            rolecheck: v => {
+                return v != '' || 'Please select Customer or Seller';
+            },
             minpassword: v => v.length >= 12 || 'Needs to be at least 12 characters',
         }
     }),
@@ -80,7 +95,6 @@ export default {
         },
 		validateForm(event) {
 			if (this.$refs.form.validate() && this.password == this.confirmationPassword) {
-				console.log('true');
 				return true;
 			}
 			event.stopPropagation();

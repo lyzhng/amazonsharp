@@ -65,8 +65,9 @@ def register_form():
 def register():
     username = flask.request.form.get('username')
     password = flask.request.form.get('password')
+    role = flask.request.form.get('role')
 
-    results = auth_manager.register(username, password, 'CUSTOMER')
+    results = auth_manager.register(username, password, role)
     flask.flash(results[1])
 
     if results[0]:
