@@ -14,4 +14,3 @@ new rootComponent({
         props: { ...rootElement.dataset },
     }),
 });
-
