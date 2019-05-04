@@ -1,7 +1,7 @@
 import flask
 import werkzeug.middleware.proxy_fix
 
-from lib.config import config
+from views import customer
 from views import public
 from lib.security import security
 
@@ -10,6 +10,7 @@ from lib.security import security
 
 app = flask.Flask(__name__, static_folder='web/public/',
     static_url_path='/public')
+app.register_blueprint(customer.CUSTOMER_VIEWS)
 app.register_blueprint(public.PUBLIC_VIEWS)
 app.register_blueprint(security.SECURITY)
 
