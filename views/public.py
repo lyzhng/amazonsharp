@@ -17,6 +17,6 @@ PUBLIC_VIEWS = flask.Blueprint('public_views', __name__)
 def home():
     return flask.render_template('home.html', is_logged_in=security.is_logged_in())
 
-@PUBLIC_VIEWS.route('/items')
+@PUBLIC_VIEWS.route('/all_items')
 def items():
-    return flask.render_template('items.html', is_logged_in=security.is_logged_in())
+    return flask.render_template('all_items.html', is_logged_in=security.is_logged_in())
