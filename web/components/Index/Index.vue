@@ -115,6 +115,11 @@
 	  						<item-preview-component :name="item.name" :price="item.price" :image-path="item.image-path"></item-preview-component>
 	  					</v-flex>
 	  				</v-layout>
+
+					<v-divider></v-divider>
+					<v-layout row justify-end>
+						<v-btn class="ma-5" dark href="/items">See All</v-btn>
+					</v-layout>
 				</v-layout>
 	  		</v-container>
 		</v-parallax>
@@ -160,3 +165,4 @@ export default {
     props: ['loggedInState'],
 }
 </script>
+
