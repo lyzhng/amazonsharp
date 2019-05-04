@@ -19,30 +19,51 @@ class DatabaseManager:
     # general case
     def insert(self, table_name: str, *values) -> None:
         qmark = ("?," * len(values)).rstrip(",")
+        with self.conn:
+            self.cur.execute('INSERT INTO {} VALUES({})'.format(table_name, qmark), values)
+            self.insert_if(table_name, *values)
+
+    def insert_if(self, table_name: str, *values) -> None:
+        self.insert_if_user(table_name, *values)
+        self.insert_if_items_bought(table_name, *values)
+
+    def insert_if_user(self, table_name: str, *values) -> None:
         is_customer = (table_name.upper() == 'CUSTOMER')
         is_seller = (table_name.upper() == 'SELLER')
         is_employee = (table_name.upper() == 'EMPLOYEE')
-        with self.conn:
-            self.cur.execute('INSERT INTO {} VALUES({})'.format(table_name, qmark), values)
-            if is_customer or is_seller:
-                email = values[0]
-                values = ('first_name', 'last_name', email)
-                self.insert('USER', *values)
-
-    def insert_user(self, *values) -> None:
-        pass
+        if is_customer or is_seller:
+            email = values[0]
+            values = ('first_name', 'last_name', email)
+            self.insert('USER', *values)
             
+
+    # increment frequency by number_of_items_bought
+    def insert_if_items_bought(self, table_name: str, *values) -> None:
+        if table_name.upper() == 'ITEMS_BOUGHT':
+            seller, item_id, order, price, name, item_type, number_of_items_bought = values
+            self.cur.execute(
+            """
+                INSERT INTO item_frequency(seller_email, item_id, frequency)
+                VALUES('{}', {}, {})
+                ON CONFLICT(seller_email, item_id) 
+                DO UPDATE SET frequency = frequency + {}
+            """.format(seller, item_id, number_of_items_bought, number_of_items_bought)
+            )
+            self.conn.commit()
+
+
+
     def update(self, table_name: str, modifications: str, filters: str) -> None:
-        with self.conn:
-            self.cur.execute('UPDATE {} SET {} WHERE {}'.format(table_name, modifications, filters))
+        self.cur.execute('UPDATE {} SET {} WHERE {}'.format(table_name, modifications, filters))
+        self.conn.commit()
 
     def delete(self, table_name: str, filters: str) -> None:
-        with self.conn:
-            self.cur.execute('DELETE {} WHERE {}'.format(table_name, filters))
+        self.cur.execute('DELETE {} WHERE {}'.format(table_name, filters))
+        self.conn.commit()
 
     def delete_user(self, filters: str) -> None:
-        with self.conn:
-            self.delete('USER', '{}'.format(filters))
+        self.delete('USER', '{}'.format(filters))
+        self.conn.commit()
 
     def has_rows(self, table_name: str, selected_attributes: str, filters: str = None) -> bool:
         return self.count_rows(table_name, selected_attributes, filters) > 0
@@ -83,11 +104,16 @@ class DatabaseManager:
             LIMIT {}
         """.format(row_count)
         )
-        return self.cur.fetchall()
+        try:
+            popular_items = [(entry[0], '$' + str(entry[1]), entry[2]) for entry in self.cur.fetchall()]
+            return popular_items
+        except sqlite3.OperationalError:
+            return []
 
     def retrieve_all_items(self):
         try:
-            return self.retrieve_rows('ITEM', 'name, price')
+            all_items = [(entry[0], '$' + str(entry[1])) for entry in self.retrieve_rows('ITEM', 'name, price')]
+            return all_items
         except sqlite3.OperationalError:
             return []
 
@@ -101,7 +127,7 @@ class DatabaseManager:
         return self.retrieve_rows('SELLER', 'email, address, phone_number')
 
     def retrieve_items_by_seller(self, seller_email: str) -> List:
-        return self.retrieve_rows('INVENTORY', 'item_id, name, quantity, price', " seller_email = '{}' ".format(seller_email))
+        return self.retrieve_rows('INVENTORY', 'item_id', " seller_email = '{}' ".format(seller_email))
 
     def retrieve_orders_by_customer(self, customer_email: str) -> List:
         return self.retrieve_rows('ORDER_PLACED', 'customer_email', " customer_email = '{}' ".format(customer_email))
@@ -124,8 +150,8 @@ class DatabaseManager:
         return self.cur.fetchall()
 
     def delete_table(self, table_name: str) -> None:
-        with self.conn:
-            self.cur.execute('DROP TABLE {}'.format(table_name))
+        self.cur.execute('DROP TABLE {}'.format(table_name))
+        self.cur.commit()
 
     def close_db(self) -> None:
         self.cur.close()

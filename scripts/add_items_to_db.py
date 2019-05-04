@@ -25,6 +25,7 @@ manager.create_table(CREATE_CONSTANTS.CUSTOMER) # works
 manager.create_table(CREATE_CONSTANTS.EMPLOYEE) # works
 
 manager.create_table(CREATE_CONSTANTS.ITEM) # works
+manager.create_table(CREATE_CONSTANTS.INVENTORY)
 manager.create_table(CREATE_CONSTANTS.HAS_SHOPPING_CART) # works
 manager.create_table(CREATE_CONSTANTS.ORDERS) # works
 manager.create_table(CREATE_CONSTANTS.ORDER_PLACED) #
@@ -33,10 +34,6 @@ manager.create_table(CREATE_CONSTANTS.SHOPPING_CART)
 manager.create_table(CREATE_CONSTANTS.ITEM_FREQUENCY) #
 manager.create_table(CREATE_CONSTANTS.ITEMS_IN_SHOPPING_CART)
 
-
-# triggers
-# manager.create_trigger(CREATE_CONSTANTS.INCREMENT_FREQUENCY_TRIGGER)
-# manager.create_trigger(CREATE_CONSTANTS.DECREMENT_QUANTITY_TRIGGER)
 
 customers = []
 customers_cart_map = {}
@@ -67,8 +64,6 @@ for i in range(10):
     manager.insert('SELLER', email, address, phone_number)
     sellers.append(email)
 
-# put 5 employees in db
-# FIXME: login_info.role & employee.role do not get along
 for i in range(5):
     first_name = names.get_first_name()
     last_name = names.get_last_name()
@@ -111,16 +106,6 @@ for order in orders:
     item_type = 'item_type: ' + str(item) + str(random.randint(1, 100))
     number_of_items_bought = 3
     manager.insert('ITEMS_BOUGHT', seller, item, order, price, name, item_type, number_of_items_bought)
-    manager.get_cursor().execute(
-        """
-        INSERT INTO item_frequency(seller_email, item_id, frequency)
-        VALUES('{}', {}, {})
-        ON CONFLICT(seller_email, item_id) 
-        DO UPDATE SET frequency = frequency + 1;
-        """.format(seller, item, 1)
-    )
-    manager.get_conn().commit()
 
-# add dollar sign
-for row in manager.retrieve_popular_items(100):
-    print(row)
+# for entry in manager.retrieve_items_by_seller('Jose.Menzel@email.com'):
+#     print(entry)

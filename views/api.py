@@ -16,4 +16,21 @@ __DATABASE = db_manager.DatabaseManager(config.get_value(config.DB_NAME))
 
 @API_VIEWS.route('/get_all_items')
 def all_items():
-    return flask.jsonify(__DATABASE.retrieve_all_items())
+    items = __DATABASE.retrieve_all_items()
+    return flask.jsonify(items)
+
+
+@API_VIEWS.route('/get_popular_items/<n>')
+def popular_items(n):
+    items = __DATABASE.retrieve_popular_items(n)
+    return flask.jsonify(items)
+
+
+@API_VIEWS.route('/get_sellers')
+def all_sellers():
+    sellers = __DATABASE.retrieve_sellers()
+    return flask.jsonify(sellers)
+
+
+
+
