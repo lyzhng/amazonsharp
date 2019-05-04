@@ -17,6 +17,7 @@ module.exports = {
         index: 'index.js',
 		login: 'login.js',
 		register: 'register.js',
+		allitems: 'allitems.js',
 		cart: 'cart.js',
 		item: 'item.js',
     },
