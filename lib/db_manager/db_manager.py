@@ -26,6 +26,7 @@ class DatabaseManager:
     def insert_if(self, table_name: str, *values) -> None:
         self.insert_if_user(table_name, *values)
         self.insert_if_items_bought(table_name, *values)
+        self.insert_if_item(table_name, *values)
 
     def insert_if_user(self, table_name: str, *values) -> None:
         is_customer = (table_name.upper() == 'CUSTOMER')
@@ -36,21 +37,33 @@ class DatabaseManager:
             values = ('first_name', 'last_name', email)
             self.insert('USER', *values)
             
-
-    # increment frequency by number_of_items_bought
     def insert_if_items_bought(self, table_name: str, *values) -> None:
         if table_name.upper() == 'ITEMS_BOUGHT':
             seller, item_id, order, price, name, item_type, number_of_items_bought = values
             self.cur.execute(
-            """
+                """
                 INSERT INTO item_frequency(seller_email, item_id, frequency)
-                VALUES('{}', {}, {})
+                    VALUES('{}', {}, {})
                 ON CONFLICT(seller_email, item_id) 
-                DO UPDATE SET frequency = frequency + {}
-            """.format(seller, item_id, number_of_items_bought, number_of_items_bought)
+                    DO UPDATE SET frequency = frequency + {}
+                """
+                .format(seller, item_id, number_of_items_bought, number_of_items_bought)
             )
             self.conn.commit()
 
+    def insert_if_item(self, table_name: str, *values):
+        if table_name.upper() == 'ITEM':
+            seller_email, item_id, quantity, price, name, item_type = values
+            self.cur.execute(
+                """
+                INSERT INTO inventory(seller_email, item_id)
+                VALUES('{}', {})
+                ON CONFLICT(seller_email, item_id)
+                DO NOTHING
+                """
+                .format(seller_email, item_id)
+            )
+            self.conn.commit()
 
 
     def update(self, table_name: str, modifications: str, filters: str) -> None:
@@ -94,7 +107,7 @@ class DatabaseManager:
         if row_count is None:
             row_count = self.count_rows('ITEMS_BOUGHT', '*')
         self.cur.execute(
-        """
+            """
             SELECT items_bought.name, items_bought.price, item_frequency.frequency
             FROM item_frequency INNER JOIN items_bought
                 ON item_frequency.seller_email = items_bought.seller_email 
@@ -102,7 +115,8 @@ class DatabaseManager:
             GROUP BY item_frequency.seller_email, item_frequency.item_id
             ORDER BY frequency DESC
             LIMIT {}
-        """.format(row_count)
+            """
+            .format(row_count)
         )
         try:
             popular_items = [(entry[0], '$' + str(entry[1]), entry[2]) for entry in self.cur.fetchall()]
@@ -127,7 +141,17 @@ class DatabaseManager:
         return self.retrieve_rows('SELLER', 'email, address, phone_number')
 
     def retrieve_items_by_seller(self, seller_email: str) -> List:
-        return self.retrieve_rows('INVENTORY', 'item_id', " seller_email = '{}' ".format(seller_email))
+        self.cur.execute(
+            """
+            SELECT item.seller_email, item.item_id, item.name, item.price, item.quantity
+            FROM inventory INNER JOIN item
+                ON inventory.seller_email = item.seller_email AND inventory.item_id = item.item_id
+            WHERE inventory.seller_email = '{}'
+            """
+            .format(seller_email)
+        )
+        items_by_seller = [(entry[0], entry[1], entry[2], '$' + str(entry[3]), entry[4]) for entry in self.cur.fetchall()]
+        return items_by_seller
 
     def retrieve_orders_by_customer(self, customer_email: str) -> List:
         return self.retrieve_rows('ORDER_PLACED', 'customer_email', " customer_email = '{}' ".format(customer_email))
@@ -145,7 +169,8 @@ class DatabaseManager:
                 INNER JOIN items_in_shopping_cart C
                     ON A.cart_id == C.cart_id
             WHERE A.email == "{}"
-            """.format(cusomer_email)
+            """
+            .format(cusomer_email)
         )
         return self.cur.fetchall()
 

@@ -107,5 +107,7 @@ for order in orders:
     number_of_items_bought = 3
     manager.insert('ITEMS_BOUGHT', seller, item, order, price, name, item_type, number_of_items_bought)
 
-# for entry in manager.retrieve_items_by_seller('Jose.Menzel@email.com'):
-#     print(entry)
+items_by_seller = manager.retrieve_items_by_seller('John.Sassano@email.com')
+for item in items_by_seller:
+    print(item)
+
