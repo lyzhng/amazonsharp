@@ -7,6 +7,8 @@ if __ROOT_PATH not in sys.path:
     sys.path.append(__ROOT_PATH)
 
 import flask
+from lib.config import config
+from lib.db_manager import db_manager
 from lib.security import security
 
 PUBLIC_VIEWS = flask.Blueprint('public_views', __name__)
