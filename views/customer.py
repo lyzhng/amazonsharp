@@ -15,4 +15,5 @@ CUSTOMER_VIEWS = flask.Blueprint('customer_views', __name__)
 @CUSTOMER_VIEWS.route('/cart')
 @security.login_required(customer_required=True)
 def cart():
-    return flask.render_template('cart.html', is_logged_in=security.is_logged_in())
+    return flask.render_template('cart.html',
+                                 is_logged_in=security.is_logged_in(customer_required=True))
