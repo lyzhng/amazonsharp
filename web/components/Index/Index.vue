@@ -9,7 +9,7 @@
 		</a>
 		<v-spacer></v-spacer>
 
-		<v-toolbar-items class="hidden-sm-and-down" v-if="loggedInState === 'true'">
+		<v-toolbar-items class="hidden-sm-and-down" v-if="loggedInState === 'True'">
 			<v-menu offset-y>
 				<template v-slot:activator="{ on }">
 					<v-btn flat dark v-on="on">
@@ -28,9 +28,12 @@
         			</v-list-tile>
 				</v-list>
 			</v-menu>
-      		<v-btn flat href="/cart">
+      		<v-btn flat href="/cart" v-if="isCustomer === 'True'">
         		<v-icon dark>fas fa-shopping-cart</v-icon>
       		</v-btn>
+            <v-btn flat href="/sell_items" v-else>
+                <v-icon dark>fas fa-store</v-icon>
+            </v-btn>
 		</v-toolbar-items>
 
     	<v-toolbar-items class="hidden-sm-and-down" v-else>
@@ -161,7 +164,7 @@ export default {
     }),
     methods: {
     },
-    props: ['loggedInState'],
+    props: ['loggedInState', 'isCustomer'],
 }
 </script>
 
