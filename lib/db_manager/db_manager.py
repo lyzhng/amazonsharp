@@ -15,13 +15,17 @@ class DatabaseManager:
         with self.conn:
             self.cur.execute(create_trigger_statement)
 
-    # TODO: add ON DUPLICATE KEY UPDATE functionality
     # general case
     def insert(self, table_name: str, *values) -> None:
+        # if table_name is 'item', there will be an upsert method for insertion
+        # just call function and return
+        if table_name.upper() == 'ITEM':
+            self.insert_item(*values)
+            return
         qmark = ("?," * len(values)).rstrip(",")
         with self.conn:
             self.cur.execute('INSERT INTO {} VALUES({})'.format(table_name, qmark), values)
-            self.insert_if(table_name, *values)
+            self.insert_if(table_name, *values) 
 
     def insert_if(self, table_name: str, *values) -> None:
         self.insert_if_user(table_name, *values)
@@ -36,20 +40,32 @@ class DatabaseManager:
             email = values[0]
             values = ('first_name', 'last_name', email)
             self.insert('USER', *values)
-            
+
     def insert_if_items_bought(self, table_name: str, *values) -> None:
         if table_name.upper() == 'ITEMS_BOUGHT':
-            seller, item_id, order, price, name, item_type, number_of_items_bought = values
+            seller_email, item_id, order, price, name, item_type, number_of_items_bought = values
             self.cur.execute(
                 """
                 INSERT INTO item_frequency(seller_email, item_id, frequency)
-                    VALUES('{}', {}, {})
+                VALUES('{}', {}, {})
                 ON CONFLICT(seller_email, item_id) 
-                    DO UPDATE SET frequency = frequency + {}
+                DO UPDATE
+                SET frequency = frequency + {}
                 """
-                .format(seller, item_id, number_of_items_bought, number_of_items_bought)
+                .format(seller_email, item_id, number_of_items_bought, number_of_items_bought)
             )
             self.conn.commit()
+
+    def insert_item(self, *values) -> None:
+        seller_email, item_id, quantity, price, name, item_type = values
+        self.cur.execute(
+            """
+            INSERT OR REPLACE INTO item(seller_email, item_id, quantity, price, name, type)
+            VALUES('{}', {}, {}, {}, '{}', '{}')
+            """
+            .format(seller_email, item_id, quantity, price, name, item_type)
+        )
+        self.conn.commit()
 
     def insert_if_item(self, table_name: str, *values):
         if table_name.upper() == 'ITEM':
@@ -144,9 +160,8 @@ class DatabaseManager:
         self.cur.execute(
             """
             SELECT item.seller_email, item.item_id, item.name, item.price, item.quantity
-            FROM inventory INNER JOIN item
-                ON inventory.seller_email = item.seller_email AND inventory.item_id = item.item_id
-            WHERE inventory.seller_email = '{}'
+            FROM item
+            WHERE item.seller_email = '{}'
             """
             .format(seller_email)
         )

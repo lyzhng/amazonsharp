@@ -34,7 +34,6 @@ manager.create_table(CREATE_CONSTANTS.SHOPPING_CART)
 manager.create_table(CREATE_CONSTANTS.ITEM_FREQUENCY) #
 manager.create_table(CREATE_CONSTANTS.ITEMS_IN_SHOPPING_CART)
 
-
 customers = []
 customers_cart_map = {}
 sellers = []
@@ -106,8 +105,3 @@ for order in orders:
     item_type = 'item_type: ' + str(item) + str(random.randint(1, 100))
     number_of_items_bought = 3
     manager.insert('ITEMS_BOUGHT', seller, item, order, price, name, item_type, number_of_items_bought)
-
-items_by_seller = manager.retrieve_items_by_seller('John.Sassano@email.com')
-for item in items_by_seller:
-    print(item)
-

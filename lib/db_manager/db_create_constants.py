@@ -244,13 +244,3 @@ ORDER_PLACED_TRIGGER = """
             VALUES(NULL, 123, new.order_number);
         END;
 """
-
-DECREMENT_QUANTITY_TRIGGER = """
-    CREATE TRIGGER IF NOT EXISTS decrement_quantity_trigger
-    AFTER INSERT ON items_bought
-        BEGIN
-            UPDATE item
-            SET quantity = quantity - 1
-            WHERE seller_email = new.seller_email AND item_id = new.item_id;
-        END;
-"""
