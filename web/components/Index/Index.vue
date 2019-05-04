@@ -118,7 +118,7 @@
 
 					<v-divider></v-divider>
 					<v-layout row justify-end>
-						<v-btn class="ma-5" dark href="/items">See All</v-btn>
+						<v-btn class="ma-5" dark href="/all_items">See All</v-btn>
 					</v-layout>
 				</v-layout>
 	  		</v-container>
