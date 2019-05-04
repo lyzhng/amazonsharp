@@ -98,7 +98,7 @@
   	<v-content>
 		<v-parallax src="/public/assets/light-3.png" height="100%">
 			<v-card class="ma-4" light>
-					<div class="display-4 ma-4">Shopping Cart</div>
+					<div class="display-3 ma-4">Shopping Cart</div>
 					
 	 				<v-layout column>
 						<v-divider></v-divider>
