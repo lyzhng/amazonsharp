@@ -1,15 +1,34 @@
 <template>
 <v-app id="inspire" dark>
 	<v-toolbar app fixed clipped-right>
-		<v-toolbar-title>
-		<v-img src="/public/assets/logo.png" contain height="38px" width="147px"></v-img>
-		</v-toolbar-title>
-    	<v-spacer></v-spacer>
+		<a href="/">
+			<v-toolbar-title>
+				<v-img src="/public/assets/logo.png" contain height="38px" width="147px"></v-img>
+			</v-toolbar-title>
+		</a>
+		<v-spacer></v-spacer>
 
 		<v-toolbar-items class="hidden-sm-and-down" v-if="loggedInState === 'true'">
-	  		<v-btn flat href="/logout">
-        		<v-icon>fa fa-sign-out-alt</v-icon>
-        		<span class="ml-2">Logout</span>
+			<v-menu offset-y>
+				<template v-slot:activator="{ on }">
+					<v-btn flat dark v-on="on">
+						My Account
+						<v-icon class="mb-2" dark right>fas fa-sort-down</v-icon>
+					</v-btn>
+				</template>
+				<v-list>
+        			<v-list-tile href="/logout">
+          				<v-list-tile-action>
+            				<v-icon>fa fa-sign-out-alt</v-icon>
+          				</v-list-tile-action>
+          				<v-list-tile-content>
+            				<v-list-tile-title>Logout</v-list-tile-title>
+          				</v-list-tile-content>
+        			</v-list-tile>
+				</v-list>
+			</v-menu>
+      		<v-btn flat href="/cart">
+        		<v-icon dark>fas fa-shopping-cart</v-icon>
       		</v-btn>
 		</v-toolbar-items>
 
@@ -30,13 +49,21 @@
   
   	<v-navigation-drawer right fixed mobile-break-point=102400 v-model="drawer" app>
     	<v-list>
-      		<v-list-tile>
+      		<v-list-tile href="/">
         		<v-list-tile-content>
           			Amazon#
         		</v-list-tile-content>
       		</v-list-tile>
       
       		<div v-if="loggedInState === 'true'">
+				<v-list-tile href="/cart">
+					<v-list-tile-action>
+						<v-icon>fas fa-shopping-cart</v-icon>
+					</v-list-tile-action>
+					<v-list-tile-content>
+						<v-list-tile-title>Cart</v-list-tile-title>
+					</v-list-tile-content>
+				</v-list-tile>
         		<v-list-tile href="/logout">
           			<v-list-tile-action>
             			<v-icon>fa fa-sign-out-alt</v-icon>
