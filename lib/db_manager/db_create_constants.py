@@ -217,3 +217,40 @@ SHIPPING_INFO = """
         CHECK (estimated_time_arrival > order_number.date_ordered)
     )
 """
+
+# After inserting a row in Customer, there will automatically be a relationship between a cart and the email.
+SHOPPING_CART_ENTRY_TRIGGER = """
+    CREATE TRIGGER IF NOT EXISTS create_shopping_cart
+    AFTER INSERT ON customer
+        BEGIN
+            INSERT INTO has_shopping_cart VALUES(new.email, new.cart_id);
+        END;
+"""
+# Continuing on from the last trigger, this trigger will watch every insert on has_shopping_cart.
+# When a row is inserted into has_shopping_cart, it will then create a shopping cart row.
+HAS_SHOPPING_CART_ENTRY_TRIGGER = """
+    CREATE TRIGGER IF NOT EXISTS has_shopping_cart_entry
+    AFTER INSERT ON has_shopping_cart
+        BEGIN
+            INSERT INTO shopping_cart VALUES(new.cart_id, 0, 0);
+        END;
+"""
+# TODO
+ORDER_PLACED_TRIGGER = """
+    CREATE TRIGGER IF NOT EXISTS order_placed_entry
+    AFTER INSERT ON orders
+        BEGIN
+            INSERT INTO order_placed(customer_email, cart_id, order_number)
+            VALUES(NULL, 123, new.order_number);
+        END;
+"""
+
+DECREMENT_QUANTITY_TRIGGER = """
+    CREATE TRIGGER IF NOT EXISTS decrement_quantity_trigger
+    AFTER INSERT ON items_bought
+        BEGIN
+            UPDATE item
+            SET quantity = quantity - 1
+            WHERE seller_email = new.seller_email AND item_id = new.item_id;
+        END;
+"""

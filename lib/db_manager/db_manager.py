@@ -16,6 +16,7 @@ class DatabaseManager:
             self.cur.execute(create_trigger_statement)
 
     # TODO: add ON DUPLICATE KEY UPDATE functionality
+    # general case
     def insert(self, table_name: str, *values) -> None:
         qmark = ("?," * len(values)).rstrip(",")
         is_customer = (table_name.upper() == 'CUSTOMER')
@@ -28,6 +29,8 @@ class DatabaseManager:
                 values = ('first_name', 'last_name', email)
                 self.insert('USER', *values)
 
+    def insert_user(self, *values) -> None:
+        pass
             
     def update(self, table_name: str, modifications: str, filters: str) -> None:
         with self.conn:
@@ -66,16 +69,19 @@ class DatabaseManager:
     def add_to_cart(self, customer_email: str, item_id: int) -> None:
         pass
 
-    def retrieve_popular_items(self):
+    def retrieve_popular_items(self, row_count: int = None):
+        if row_count is None:
+            row_count = self.count_rows('ITEMS_BOUGHT', '*')
         self.cur.execute(
         """
-            SELECT item.item_id, item.seller_email, item.name
-            FROM item_frequency JOIN item
-                ON item_frequency.seller_email = item.seller_email
-                    AND item_frequency.item_id = item.item_id
-            GROUP BY item.item_id AND item.seller_email
-            ORDER BY item_frequency.frequency DESC
-        """
+            SELECT items_bought.name, items_bought.price, item_frequency.frequency
+            FROM item_frequency INNER JOIN items_bought
+                ON item_frequency.seller_email = items_bought.seller_email 
+                    AND item_frequency.item_id = items_bought.item_id
+            GROUP BY item_frequency.seller_email, item_frequency.item_id
+            ORDER BY frequency DESC
+            LIMIT {}
+        """.format(row_count)
         )
         return self.cur.fetchall()
 
@@ -124,3 +130,6 @@ class DatabaseManager:
 
     def get_cursor(self):
         return self.cur
+
+    def get_conn(self):
+        return self.conn
