@@ -45,9 +45,9 @@
 		    ></v-text-field>
 
 		<v-layout row>
-    		<v-btn flat small dark href="/login">Sign in instead</v-btn>
+    		<v-btn flat small color="info" href="/login">Sign in instead</v-btn>
     		<v-spacer></v-spacer>
-    		<v-btn type="submit" dark @click.native="validateForm($event)">Register</v-btn>
+    		<v-btn type="submit" color="info" @click.native="validateForm($event)">Register</v-btn>
   		</v-layout>
 	</v-form>
 </div>

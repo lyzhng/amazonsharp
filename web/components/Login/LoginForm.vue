@@ -30,9 +30,9 @@
     		></v-text-field>
  	 
 		<v-layout row>
-    		<v-btn flat small dark href="/register">Create Account</v-btn>
+    		<v-btn flat small color="info" href="/register">Create Account</v-btn>
     		<v-spacer></v-spacer>
-    		<v-btn type="submit" dark>Login</v-btn>
+    		<v-btn type="submit" color="info">Login</v-btn>
   		</v-layout>
 	</v-form>
 </div>
