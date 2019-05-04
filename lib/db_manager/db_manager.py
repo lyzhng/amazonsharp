@@ -80,7 +80,10 @@ class DatabaseManager:
         return self.cur.fetchall()
 
     def retrieve_all_items(self):
-        return self.retrieve_rows('ITEM', 'name, price')
+        try:
+            return self.retrieve_rows('ITEM', 'name, price')
+        except sqlite3.OperationalError:
+            return []
 
     def retrieve_available_items(self):
         return self.retrieve_rows('ITEM', 'item_id, name, quantity, price', ' quantity > 0 ')
