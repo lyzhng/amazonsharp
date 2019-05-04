@@ -8,8 +8,8 @@ from lib.security import security
 
 # FREE FLOATING SECTION STARTS HERE
 
-app = flask.Flask(__name__, static_folder='web/public/components/',
-    static_url_path='')
+app = flask.Flask(__name__, static_folder='web/public/',
+    static_url_path='/public')
 app.register_blueprint(public.PUBLIC_VIEWS)
 app.register_blueprint(security.SECURITY)
 

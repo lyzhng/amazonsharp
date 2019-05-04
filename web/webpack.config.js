@@ -17,7 +17,8 @@ module.exports = {
         index: 'index.js',
 		login: 'login.js',
 		register: 'register.js',
-		amazonsharp: 'amazonsharp.js',
+		item: 'item.js',
+		itempreview: 'itempreview.js',
     },
     output: {
         path: path.join(__dirname, 'public', 'components'),
