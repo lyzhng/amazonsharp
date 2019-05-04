@@ -32,5 +32,10 @@ def all_sellers():
     return flask.jsonify(sellers)
 
 
+@API_VIEWS.route('/get_sellers/<seller>')
+def items_by_seller(seller):
+    items_by_seller = __DATABASE.retrieve_items_by_seller(seller)
+    return flask.jsonify(items_by_seller)
+
 
 
