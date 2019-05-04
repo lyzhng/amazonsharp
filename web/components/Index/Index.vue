@@ -1,6 +1,7 @@
 <template>
 <v-app id="inspire" dark>
-	<v-toolbar app fixed clipped-right>
+	<v-toolbar app fixed clipped-left>
+    	<v-toolbar-side-icon class="hidden-md-and-up" @click.stop="drawer = !drawer;"></v-toolbar-side-icon>
 		<a href="/">
 			<v-toolbar-title>
 				<v-img src="/public/assets/logo.png" contain height="38px" width="147px"></v-img>
@@ -43,11 +44,9 @@
         		<span class="ml-2">Login</span>
      		</v-btn>
     	</v-toolbar-items>
-    
-    	<v-toolbar-side-icon class="hidden-md-and-up" @click.stop="drawer = !drawer;"></v-toolbar-side-icon>
   	</v-toolbar>
   
-  	<v-navigation-drawer right fixed mobile-break-point=102400 v-model="drawer" app>
+  	<v-navigation-drawer left fixed mobile-break-point=102400 v-model="drawer" app>
     	<v-list>
       		<v-list-tile href="/">
         		<v-list-tile-content>
@@ -115,6 +114,11 @@
 	  						<item-preview-component :name="item.name" :price="item.price" :image-path="item.image-path"></item-preview-component>
 	  					</v-flex>
 	  				</v-layout>
+
+					<v-divider></v-divider>
+					<v-layout row justify-end>
+						<v-btn class="ma-5" dark href="/all_items">See All</v-btn>
+					</v-layout>
 				</v-layout>
 	  		</v-container>
 		</v-parallax>
@@ -160,3 +164,4 @@ export default {
     props: ['loggedInState'],
 }
 </script>
+

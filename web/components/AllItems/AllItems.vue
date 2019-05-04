@@ -7,7 +7,7 @@
 				<v-img src="/public/assets/logo.png" contain height="38px" width="147px"></v-img>
 			</v-toolbar-title>
 		</a>
-    	<v-spacer></v-spacer>
+		<v-spacer></v-spacer>
 
 		<v-toolbar-items class="hidden-sm-and-down" v-if="loggedInState === 'true'">
 			<v-menu offset-y>
@@ -97,21 +97,19 @@
   
   	<v-content>
 		<v-parallax src="/public/assets/light-3.png" height="100%">
-			<v-card class="ma-4" light>
-					<div class="display-4 ma-4">Shopping Cart</div>
-					
-	 				<v-layout column>
-						<v-divider></v-divider>
-	  					<v-flex v-for="item in items">
-	  						<cart-preview-component :name="item.name" :price="item.price" :image-path="item.image-path"></cart-preview-component>
+	  		<v-container grid-list-lg>
+				<v-layout column align-space-between>
+					<v-layout class="ma-3 mt-5 pt-5" row justify-start>
+						<span class="display-3 black--text">All Items</span>
+					</v-layout>
+
+	 				<v-layout row wrap align-end>
+	  					<v-flex v-for="item in items" xs4 sm3 md2>
+	  						<item-preview-component :name="item[0]" :price="item[1]" image-path="/public/assets/temp.jpg"></item-preview-component>
 	  					</v-flex>
 	  				</v-layout>
-
-					<v-divider></v-divider>
-					<v-layout row justify-end>
-						<v-btn class="ma-5" color="info">Place Order</v-btn>
-					</v-layout>
-			</v-card>
+				</v-layout>
+	  		</v-container>
 		</v-parallax>
 	</v-content>
   
@@ -120,33 +118,32 @@
 </template>
 
 <script>
+import ItemPreviewComponent from 'ItemPreview/ItemPreview.vue';
 import FooterComponent from 'Footer/Footer.vue';
-import CartPreviewComponent from 'CartPreview/CartPreview.vue';
 
 export default {
-    name: 'Cart',
-    components: {FooterComponent, CartPreviewComponent},
+    name: 'AllItems',
+    components: {ItemPreviewComponent, FooterComponent},
     data: () => ({
         drawer: false,
-		items: [
-			{'name': 'Item A', 'price': '$9.99', 'image-path': 'randomPath'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-		],
     }),
+	async mounted() {
+		const response = await fetch('/get_all_items');
+        if (response.ok) {
+            this.items = await response.json();
+        } else {
+            alert('There was a problem communicating with the server, please try again later.');
+            return
+        }
+
+		if (this.items === null) {
+            this.items = [];
+        }
+	},
     methods: {
+		
     },
-    props: ['loggedInState'],
+    props: ['loggedInState', 'items'],
 }
 </script>
+
