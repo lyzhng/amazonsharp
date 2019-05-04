@@ -1,5 +1,5 @@
 <template>
-<v-card>
+<v-card dark>
 	<v-img src="/public/assets/temp.jpg" contain></v-img>
 	<v-card-title primary-title>
 		<div>
