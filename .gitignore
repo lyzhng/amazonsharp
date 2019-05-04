@@ -109,4 +109,4 @@ config.toml
 data/amazonsharp.db
 
 web/node_modules
-web/public
+web/public/components
