@@ -110,3 +110,4 @@ data/amazonsharp.db
 
 web/node_modules
 web/public/components
+web/public/item_images
