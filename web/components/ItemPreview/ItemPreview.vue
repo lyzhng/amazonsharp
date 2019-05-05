@@ -1,10 +1,11 @@
 <template>
 <v-card dark>
-	<v-img src="/public/assets/temp.jpg" contain></v-img>
+	<v-img :src="this.imagePath" contain></v-img>
 	<v-card-title primary-title>
 		<div>
 			<h3 class="headline mb-0">{{ this.name }}</h3>
 			<div>{{ this.price }}</div>
+            <div>Popularity: {{ this.popularity }}</div>
 		</div>
 	</v-card-title>
 </v-card>
@@ -20,6 +21,6 @@ export default {
 	methods: {
 
 	},
-	props: ['name', 'price', 'imagePath'],
+	props: ['name', 'price', 'popularity', 'imagePath'],
 }
 </script>

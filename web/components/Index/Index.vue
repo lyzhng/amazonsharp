@@ -114,7 +114,8 @@
 
 	 				<v-layout row wrap align-end>
 	  					<v-flex v-for="item in items" xs4 sm3 md2>
-	  						<item-preview-component :name="item.name" :price="item.price" :image-path="item.image-path"></item-preview-component>
+	  						<item-preview-component :name="item[0]" :price="item[1]"
+	  						:popularity="item[2]" image-path="/public/assets/temp.jpg"></item-preview-component>
 	  					</v-flex>
 	  				</v-layout>
 
@@ -140,28 +141,26 @@ export default {
     components: {ItemPreviewComponent, FooterComponent},
     data: () => ({
         drawer: false,
-		items: [
-			{'name': 'Item A', 'price': '$9.99', 'image-path': 'randomPath'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', 'image-path': 'randomPath2'},
-		],
 		images: [
 			{'src': '/public/assets/carousel-temp1.jpg'},
 			{'src': '/public/assets/carousel-temp2.jpg'},
 			{'src': '/public/assets/carousel-temp3.jpeg'},
 		],
+        items: null,
     }),
+	async mounted() {
+		const response = await fetch('/get_popular_items/18');
+        if (response.ok) {
+            this.items = await response.json();
+        } else {
+            alert('There was a problem communicating with the server, please try again later.');
+            return
+        }
+
+		if (this.items === null) {
+            this.items = [];
+        }
+	},
     methods: {
     },
     props: ['loggedInState', 'isCustomer'],
