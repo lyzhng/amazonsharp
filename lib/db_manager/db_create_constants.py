@@ -35,7 +35,6 @@ EMPLOYEE = """
     )
 """
 
-# CHECK(role IN ("SELLER", "ADMIN", "CUSTOMER", "DEVELOPER"))
 LOGIN_INFO = """
     CREATE TABLE IF NOT EXISTS login_info(
         email TINYTEXT PRIMARY KEY,
@@ -124,9 +123,8 @@ ITEMS_IN_SHOPPING_CART = """
 
 HAS_SHOPPING_CART = """
     CREATE TABLE IF NOT EXISTS has_shopping_cart(
-        customer_email TINYTEXT,
-        cart_id INTEGER,
-        PRIMARY KEY(customer_email, cart_id),
+        customer_email TINYTEXT NOT NULL,
+        cart_id INTEGER PRIMARY KEY,
         FOREIGN KEY(customer_email) REFERENCES customer(email),
         FOREIGN KEY(cart_id) REFERENCES items_in_shopping_cart(cart_id)
     )
@@ -140,7 +138,7 @@ SHOPPING_CART = """
             CHECK(total_number_of_items >= 0),
         total_price DOUBLE DEFAULT 0 NOT NULL
             CHECK(total_price >= 0),
-        FOREIGN KEY(cart_id) REFERENCES has_a_shopping_cart(cart_id)
+        FOREIGN KEY(cart_id) REFERENCES has_shopping_cart(cart_id)
     )
 """
 

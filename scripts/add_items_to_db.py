@@ -44,7 +44,7 @@ orders = []
 carts = []
 
 # put 5 customers in db
-for i in range(10):
+for i in range(5):
     first_name = names.get_first_name()
     last_name = names.get_last_name()
     email = first_name + '.' + last_name + '@email.com'
@@ -54,7 +54,7 @@ for i in range(10):
     customers.append(email)
 
 # put 5 sellers in db
-for i in range(10):
+for i in range(5):
     first_name = names.get_first_name()
     last_name = names.get_last_name()
     email = first_name + '.' + last_name + '@email.com'
@@ -82,12 +82,6 @@ for i in range(10):
     item_type = 'ITEM_TYPE: ' + 'type' + str(i)
     manager.insert('ITEM', seller, item_id, 5, price, name, item_type)
     items.append(item_id)
-
-# 5 customers have a shopping cart FIXME
-for customer in customers:
-    cart_id = random.randint(1000, 1e5)
-    manager.insert('HAS_SHOPPING_CART', customer, cart_id)
-    carts.append(cart_id)
 
 for i in range(5):
     order_no = random.randint(1, 1e5)

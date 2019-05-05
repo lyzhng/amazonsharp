@@ -16,9 +16,10 @@ class DatabaseManager:
             self.cur.execute(create_trigger_statement)
 
     # general case
+    # if table_name is 'item', there will be an upsert method for insertion
+    # just call function and return
+    # otherwise, insert into db (and other tables if needed)
     def insert(self, table_name: str, *values) -> None:
-        # if table_name is 'item', there will be an upsert method for insertion
-        # just call function and return
         if table_name.upper() == 'ITEM':
             self.insert_item(*values)
             return
@@ -31,6 +32,7 @@ class DatabaseManager:
         self.insert_if_user(table_name, *values)
         self.insert_if_items_bought(table_name, *values)
         self.insert_if_item(table_name, *values)
+        self.insert_if_customer(table_name, *values)
 
     def insert_if_user(self, table_name: str, *values) -> None:
         is_customer = (table_name.upper() == 'CUSTOMER')
@@ -40,6 +42,30 @@ class DatabaseManager:
             email = values[0]
             values = ('first_name', 'last_name', email)
             self.insert('USER', *values)
+
+    def insert_if_customer(self, table_name: str, *values) -> None:
+        if table_name != 'CUSTOMER':
+            return
+        if self.count_rows('CUSTOMER', '*') == 1:
+            self.insert('HAS_SHOPPING_CART', values[0], 1)
+            self.insert('SHOPPING_CART', 1, 0, 0)
+        else:
+            current_max = self.retrieve_max_cart_id()[0]
+            self.insert('HAS_SHOPPING_CART', values[0], current_max + 1)
+            self.insert('SHOPPING_CART', current_max + 1, 0, 0)            
+
+    def retrieve_max_cart_id(self) -> int:
+        self.cur.execute(
+            """
+            SELECT cart_id
+            FROM has_shopping_cart
+            ORDER BY cart_id DESC
+            LIMIT 1
+            """
+        )
+        return self.cur.fetchone()
+
+
 
     def insert_if_items_bought(self, table_name: str, *values) -> None:
         if table_name.upper() == 'ITEMS_BOUGHT':
@@ -148,13 +174,22 @@ class DatabaseManager:
             return []
 
     def retrieve_available_items(self):
-        return self.retrieve_rows('ITEM', 'item_id, name, quantity, price', ' quantity > 0 ')
+        try:
+            return self.retrieve_rows('ITEM', 'item_id, name, quantity, price', ' quantity > 0 ')
+        except sqlite3.OperationalError:
+            return []
 
     def retrieve_out_of_stock_items(self):
-        return self.retrieve_rows('ITEM', 'item_id, name, quantity, price', ' quantity = 0')
+        try:
+            return self.retrieve_rows('ITEM', 'item_id, name, quantity, price', ' quantity = 0')
+        except sqlite3.OperationalError:
+            return []
 
     def retrieve_sellers(self):
-        return self.retrieve_rows('SELLER', 'email, address, phone_number')
+        try:
+            return self.retrieve_rows('SELLER', 'email, address, phone_number')
+        except sqlite3.OperationalError:
+            return []
 
     def retrieve_items_by_seller(self, seller_email: str) -> List:
         self.cur.execute(
@@ -165,20 +200,30 @@ class DatabaseManager:
             """
             .format(seller_email)
         )
-        items_by_seller = [(entry[0], entry[1], entry[2], '$' + str(entry[3]), entry[4]) for entry in self.cur.fetchall()]
-        return items_by_seller
+        try:
+            items_by_seller = [(entry[0], entry[1], entry[2], '$' + str(entry[3]), entry[4]) for entry in self.cur.fetchall()]
+            return items_by_seller
+        except sqlite3.OperationalError:
+            return []
 
     def retrieve_orders_by_customer(self, customer_email: str) -> List:
-        return self.retrieve_rows('ORDER_PLACED', 'customer_email', " customer_email = '{}' ".format(customer_email))
+        try:
+            return self.retrieve_rows('ORDER_PLACED', 'customer_email', " customer_email = '{}' ".format(customer_email))
+        except sqlite3.OperationalError:
+            return []
 
     def retrieve_items_from_order(self, order_number: int) -> List:
-        return self.retrieve_rows('ITEMS_BOUGHT', 'name, number_of_items_bought', ' order_number = {} '.format(order_number))
+        try:
+            return self.retrieve_rows('ITEMS_BOUGHT', 'name, number_of_items_bought', ' order_number = {} '.format(order_number))
+        except sqlite3.OperationalError:
+            return []            
         
+    # testing
     def retrieve_items_from_shopping_cart(self, customer_email: str) -> List:
         self.cur.execute(
             """ 
             SELECT C.item_id, C.name, C.number_of_items_bought
-            FROM has_a_shopping_cart A
+            FROM has_shopping_cart A
                 LEFT OUTER JOIN shopping_cart B
                     ON A.cart_id == B.cart_id
                 INNER JOIN items_in_shopping_cart C
