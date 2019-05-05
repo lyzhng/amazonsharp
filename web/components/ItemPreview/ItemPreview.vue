@@ -5,7 +5,7 @@
 		<div>
 			<h3 class="headline mb-0">{{ this.name }}</h3>
 			<div>{{ this.price }}</div>
-            <div>Popularity: {{ this.popularity }}</div>
+            <div v-if="popularity >= 0">Popularity: {{ this.popularity }}</div>
 		</div>
 	</v-card-title>
 </v-card>

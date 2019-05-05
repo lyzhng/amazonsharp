@@ -9,7 +9,7 @@
 		</a>
 		<v-spacer></v-spacer>
 
-		<v-toolbar-items class="hidden-sm-and-down" v-if="loggedInState === 'true'">
+		<v-toolbar-items class="hidden-sm-and-down" v-if="loggedInState === 'True'">
 			<v-menu offset-y>
 				<template v-slot:activator="{ on }">
 					<v-btn flat dark v-on="on">
@@ -28,9 +28,12 @@
         			</v-list-tile>
 				</v-list>
 			</v-menu>
-      		<v-btn flat href="/cart">
+      		<v-btn flat href="/cart" v-if="isCustomer === 'True'">
         		<v-icon dark>fas fa-shopping-cart</v-icon>
       		</v-btn>
+            <v-btn flat href="/sell_items" v-else>
+                <v-icon dark>fas fa-store</v-icon>
+            </v-btn>
 		</v-toolbar-items>
 
     	<v-toolbar-items class="hidden-sm-and-down" v-else>
@@ -54,13 +57,21 @@
         		</v-list-tile-content>
       		</v-list-tile>
       
-      		<div v-if="loggedInState === 'true'">
-				<v-list-tile href="/cart">
+      		<div v-if="loggedInState === 'True'">
+				<v-list-tile href="/cart" v-if="isCustomer === 'True'">
 					<v-list-tile-action>
 						<v-icon>fas fa-shopping-cart</v-icon>
 					</v-list-tile-action>
 					<v-list-tile-content>
 						<v-list-tile-title>Cart</v-list-tile-title>
+					</v-list-tile-content>
+				</v-list-tile>
+				<v-list-tile href="/sell_items" v-else>
+					<v-list-tile-action>
+						<v-icon>fas fa-store</v-icon>
+					</v-list-tile-action>
+					<v-list-tile-content>
+						<v-list-tile-title>Store</v-list-tile-title>
 					</v-list-tile-content>
 				</v-list-tile>
         		<v-list-tile href="/logout">
@@ -104,8 +115,8 @@
 					</v-layout>
 
 	 				<v-layout row wrap align-end>
-	  					<v-flex v-for="(item, i) in items" :key="i" xs4 sm3 md2>
-	  						<item-preview-component :name="item[0]" :price="item[1]" image-path="/public/assets/temp.jpg"></item-preview-component>
+	  					<v-flex v-for="(item, j) in items" :key="j" xs4 sm3 md2>
+	  						<item-preview-component :name="item[0]" :price="item[1]" :popularity="-1" image-path="/public/assets/temp.jpg"></item-preview-component>
 	  					</v-flex>
 	  				</v-layout>
 				</v-layout>
@@ -144,7 +155,7 @@ export default {
     methods: {
 		
     },
-    props: ['loggedInState', 'items'],
+    props: ['loggedInState', 'isCustomer'],
 }
 </script>
 

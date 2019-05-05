@@ -9,7 +9,7 @@
 		</a>
     	<v-spacer></v-spacer>
 
-		<v-toolbar-items class="hidden-sm-and-down" v-if="loggedInState === 'true'">
+		<v-toolbar-items class="hidden-sm-and-down" v-if="loggedInState === 'True'">
 			<v-menu offset-y>
 				<template v-slot:activator="{ on }">
 					<v-btn flat dark v-on="on">
@@ -54,7 +54,7 @@
         		</v-list-tile-content>
       		</v-list-tile>
       
-      		<div v-if="loggedInState === 'true'">
+      		<div v-if="loggedInState === 'True'">
 				<v-list-tile href="/cart">
 					<v-list-tile-action>
 						<v-icon>fas fa-shopping-cart</v-icon>

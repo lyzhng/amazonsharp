@@ -21,4 +21,6 @@ def home():
 
 @PUBLIC_VIEWS.route('/all_items')
 def items():
-    return flask.render_template('all_items.html', is_logged_in=security.is_logged_in())
+    username: str = flask.session.get('username') or ''
+    return flask.render_template('all_items.html', is_logged_in=security.is_logged_in(),
+                                 is_customer=auth_manager.is_customer(username))

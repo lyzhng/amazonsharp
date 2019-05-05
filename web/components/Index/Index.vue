@@ -57,13 +57,21 @@
         		</v-list-tile-content>
       		</v-list-tile>
       
-      		<div v-if="loggedInState === 'true'">
-				<v-list-tile href="/cart">
+      		<div v-if="loggedInState === 'True'">
+				<v-list-tile href="/cart" v-if="isCustomer === 'True'">
 					<v-list-tile-action>
 						<v-icon>fas fa-shopping-cart</v-icon>
 					</v-list-tile-action>
 					<v-list-tile-content>
 						<v-list-tile-title>Cart</v-list-tile-title>
+					</v-list-tile-content>
+				</v-list-tile>
+				<v-list-tile href="/sell_items" v-else>
+					<v-list-tile-action>
+						<v-icon>fas fa-store</v-icon>
+					</v-list-tile-action>
+					<v-list-tile-content>
+						<v-list-tile-title>Store</v-list-tile-title>
 					</v-list-tile-content>
 				</v-list-tile>
         		<v-list-tile href="/logout">

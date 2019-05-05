@@ -9,10 +9,6 @@
 {% endblock %}
 
 {% block content %}
-	{% if is_logged_in %}
-		<app data-logged-in-state="true"></app>
-	{% else %}
-		<app data-logged-in-state="false"></app>
-	{% endif %}
+	<app data-logged-in-state="{{ is_logged_in }}" data-is-customer="{{ is_customer }}"></app>
 	<script src="/public/components/allitems.js"></script>
 {% endblock %}
