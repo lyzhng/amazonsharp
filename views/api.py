@@ -20,7 +20,7 @@ def all_items():
     return flask.jsonify(items)
 
 
-@API_VIEWS.route('/get_popular_items/<n>')
+@API_VIEWS.route('/get_popular_items/<int:n>')
 def popular_items(n):
     items = __DATABASE.retrieve_popular_items(n)
     return flask.jsonify(items)
