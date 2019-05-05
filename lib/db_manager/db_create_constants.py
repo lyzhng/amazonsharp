@@ -70,8 +70,7 @@ ITEM_FREQUENCY = """
         item_id INTEGER,
         frequency INTEGER DEFAULT 1 NOT NULL,
         PRIMARY KEY(seller_email, item_id),
-        FOREIGN KEY(seller_email) REFERENCES item(seller_email),
-        FOREIGN KEY(item_id) REFERENCES item(item_id)
+        FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
     )
 """
 
@@ -86,10 +85,7 @@ ITEMS_BOUGHT = """
         number_of_items_bought INTEGER DEFAULT 0 NOT NULL
             CHECK(number_of_items_bought >= 0),
         PRIMARY KEY(seller_email, item_id, order_number),
-        FOREIGN KEY(seller_email) REFERENCES seller(email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-        FOREIGN KEY(item_id) REFERENCES item(item_id)
+        FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
             ON DELETE CASCADE
             ON UPDATE CASCADE,
         FOREIGN KEY(order_number) REFERENCES orders(order_number)
@@ -109,10 +105,7 @@ ITEMS_IN_SHOPPING_CART = """
         type TINYTEXT NOT NULL,
         number_of_items_bought INTEGER NOT NULL,
         PRIMARY KEY(cart_id, seller_email, item_id),
-        FOREIGN KEY(seller_email) REFERENCES seller(email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-        FOREIGN KEY(item_id) REFERENCES item(item_id)
+        FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
             ON DELETE CASCADE
             ON UPDATE CASCADE,
         FOREIGN KEY(cart_id) REFERENCES shopping_cart(cart_id)
@@ -126,7 +119,7 @@ HAS_SHOPPING_CART = """
         customer_email TINYTEXT NOT NULL,
         cart_id INTEGER PRIMARY KEY,
         FOREIGN KEY(customer_email) REFERENCES customer(email),
-        FOREIGN KEY(cart_id) REFERENCES items_in_shopping_cart(cart_id)
+        FOREIGN KEY(cart_id) REFERENCES shopping_cart(cart_id)
     )
 """
 
@@ -137,8 +130,7 @@ SHOPPING_CART = """
         total_number_of_items INTEGER DEFAULT 0 NOT NULL
             CHECK(total_number_of_items >= 0),
         total_price DOUBLE DEFAULT 0 NOT NULL
-            CHECK(total_price >= 0),
-        FOREIGN KEY(cart_id) REFERENCES has_shopping_cart(cart_id)
+            CHECK(total_price >= 0)
     )
 """
 
@@ -188,10 +180,7 @@ INVENTORY = """
         seller_email TINYTEXT,
         item_id INTEGER,
         PRIMARY KEY(seller_email, item_id),
-        FOREIGN KEY(seller_email) REFERENCES seller(email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-        FOREIGN KEY(item_id) REFERENCES item(item_id)
+        FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
             ON DELETE CASCADE
             ON UPDATE CASCADE
     )
@@ -214,31 +203,4 @@ SHIPPING_INFO = """
             ON UPDATE CASCADE,
         CHECK (estimated_time_arrival > order_number.date_ordered)
     )
-"""
-
-# After inserting a row in Customer, there will automatically be a relationship between a cart and the email.
-SHOPPING_CART_ENTRY_TRIGGER = """
-    CREATE TRIGGER IF NOT EXISTS create_shopping_cart
-    AFTER INSERT ON customer
-        BEGIN
-            INSERT INTO has_shopping_cart VALUES(new.email, new.cart_id);
-        END;
-"""
-# Continuing on from the last trigger, this trigger will watch every insert on has_shopping_cart.
-# When a row is inserted into has_shopping_cart, it will then create a shopping cart row.
-HAS_SHOPPING_CART_ENTRY_TRIGGER = """
-    CREATE TRIGGER IF NOT EXISTS has_shopping_cart_entry
-    AFTER INSERT ON has_shopping_cart
-        BEGIN
-            INSERT INTO shopping_cart VALUES(new.cart_id, 0, 0);
-        END;
-"""
-# TODO
-ORDER_PLACED_TRIGGER = """
-    CREATE TRIGGER IF NOT EXISTS order_placed_entry
-    AFTER INSERT ON orders
-        BEGIN
-            INSERT INTO order_placed(customer_email, cart_id, order_number)
-            VALUES(NULL, 123, new.order_number);
-        END;
 """
