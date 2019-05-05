@@ -9,6 +9,7 @@ if __ROOT_PATH not in sys.path:
 import flask
 from lib.config import config
 from lib.db_manager import db_manager
+from lib.security import security
 
 API_VIEWS = flask.Blueprint('api_views', __name__)
 __DATABASE = db_manager.DatabaseManager(config.get_value(config.DB_NAME))                                                            
@@ -32,7 +33,7 @@ def all_sellers():
     return flask.jsonify(sellers)
 
 
-@API_VIEWS.route('/get_sellers/<seller>')
+@API_VIEWS.route('/get_items/<str:seller>')
 def items_by_seller(seller):
     items_by_seller = __DATABASE.retrieve_items_by_seller(seller)
     return flask.jsonify(items_by_seller)
