@@ -104,7 +104,7 @@
 					</v-layout>
 
 	 				<v-layout row wrap align-end>
-	  					<v-flex v-for="item in items" xs4 sm3 md2>
+	  					<v-flex v-for="(item, i) in items" :key="i" xs4 sm3 md2>
 	  						<item-preview-component :name="item[0]" :price="item[1]" image-path="/public/assets/temp.jpg"></item-preview-component>
 	  					</v-flex>
 	  				</v-layout>

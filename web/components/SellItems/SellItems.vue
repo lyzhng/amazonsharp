@@ -42,7 +42,7 @@
 					
 	 			<v-layout column>
 					<v-divider></v-divider>
-	  				<v-flex v-for="item in items">
+	  				<v-flex v-for="(item, i) in items" :key="i">
 	  					<sell-items-preview-component :name="item.name" :price="item.price" :image-path="item.image-path" :quantity="item.quantity"></sell-items-preview-component>
 	  				</v-flex>
 	  			</v-layout>
