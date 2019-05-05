@@ -12,10 +12,10 @@ import names
 import random
 import secrets
 from lib.config import config
-from lib.db_manager import db_manager
+from lib.db_manager import db_manager_no_lock
 from lib.db_manager import db_create_constants as CREATE_CONSTANTS
 
-manager = db_manager.DatabaseManager(config.get_value(config.DB_NAME))
+manager = db_manager_no_lock.DatabaseManager(config.get_value(config.DB_NAME))
 trailing_address = ['Street', 'Road', 'City']
 
 # tables
@@ -25,13 +25,13 @@ manager.create_table(CREATE_CONSTANTS.CUSTOMER) # works
 manager.create_table(CREATE_CONSTANTS.EMPLOYEE) # works
 
 manager.create_table(CREATE_CONSTANTS.ITEM) # works
-manager.create_table(CREATE_CONSTANTS.INVENTORY)
+manager.create_table(CREATE_CONSTANTS.INVENTORY) 
+manager.create_table(CREATE_CONSTANTS.SHOPPING_CART) # works
 manager.create_table(CREATE_CONSTANTS.HAS_SHOPPING_CART) # works
 manager.create_table(CREATE_CONSTANTS.ORDERS) # works
-manager.create_table(CREATE_CONSTANTS.ORDER_PLACED) #
-manager.create_table(CREATE_CONSTANTS.ITEMS_BOUGHT)
-manager.create_table(CREATE_CONSTANTS.SHOPPING_CART)
-manager.create_table(CREATE_CONSTANTS.ITEM_FREQUENCY) #
+manager.create_table(CREATE_CONSTANTS.ORDER_PLACED) 
+manager.create_table(CREATE_CONSTANTS.ITEMS_BOUGHT) 
+manager.create_table(CREATE_CONSTANTS.ITEM_FREQUENCY)
 manager.create_table(CREATE_CONSTANTS.ITEMS_IN_SHOPPING_CART)
 
 customers = []
@@ -63,25 +63,27 @@ for i in range(5):
     manager.insert('SELLER', email, address, phone_number)
     sellers.append(email)
 
-for i in range(5):
-    first_name = names.get_first_name()
-    last_name = names.get_last_name()
-    email = first_name + '.' + last_name + '@email.com'
-    role = random.choice(employee_roles)
-    date_joined = str(random.randint(2000, 2050)) + '-' + str(random.randint(1, 12)) + '-' + str(random.randint(1, 30))
-    phone_number = random.randint(1e9, 9e9)
-    manager.insert('EMPLOYEE', email, role, date_joined, phone_number)
-    employees.append(email)
+# for i in range(5):
+#     first_name = names.get_first_name()
+#     last_name = names.get_last_name()
+#     email = first_name + '.' + last_name + '@email.com'
+#     role = random.choice(employee_roles)
+#     date_joined = str(random.randint(2000, 2050)) + '-' + str(random.randint(1, 12)) + '-' + str(random.randint(1, 30))
+#     phone_number = random.randint(1e9, 9e9)
+#     manager.insert('EMPLOYEE', email, role, date_joined, phone_number)
+#     employees.append(email)
 
+item_sellers = []
 # put 5 items in db
-for i in range(10):
+for i in range(5):
     seller = random.choice(sellers)
-    item_id = random.randint(1, 100)
+    item_id = random.randint(1, 10)
     price = random.randint(1, 10)
     name = 'ITEM: ' + 'name' + str(i)
     item_type = 'ITEM_TYPE: ' + 'type' + str(i)
-    manager.insert('ITEM', seller, item_id, 5, price, name, item_type)
+    manager.insert('ITEM', seller, item_id, 100, price, name, item_type)
     items.append(item_id)
+    item_sellers.append(seller)
 
 for i in range(5):
     order_no = random.randint(1, 1e5)
@@ -90,12 +92,12 @@ for i in range(5):
     manager.insert('ORDERS', order_no, total_number_of_items, date_ordered)
     orders.append(order_no)
 
-items_bought = {}
-for order in orders:
-    item = 12345
-    seller = random.choice(sellers)
+for i in range(len(orders)):
+    item = items[i]
+    item_seller = item_sellers[i]
+    order = orders[i]
     price = random.randint(1, 50)
     name = 'item_name: ' + str(item) + str(random.randint(1, 100))
     item_type = 'item_type: ' + str(item) + str(random.randint(1, 100))
     number_of_items_bought = 3
-    manager.insert('ITEMS_BOUGHT', seller, item, order, price, name, item_type, number_of_items_bought)
+    manager.insert('ITEMS_BOUGHT', item_seller, item, order, price, name, item_type, number_of_items_bought)
