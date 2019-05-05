@@ -126,6 +126,7 @@ export default {
     components: {ItemPreviewComponent, FooterComponent},
     data: () => ({
         drawer: false,
+        items: null,
     }),
 	async mounted() {
 		const response = await fetch('/get_all_items');
