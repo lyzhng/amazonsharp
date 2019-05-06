@@ -48,7 +48,7 @@ for i in range(5):
     first_name = names.get_first_name()
     last_name = names.get_last_name()
     email = first_name + '.' + last_name + '@email.com'
-    address = str(random.randint(1, 999)) + random.choice(trailing_address)
+    address = str(random.randint(1, 999)) + ' ' + random.choice(trailing_address)
     phone_number = random.randint(1e9, 9e9)
     manager.insert('CUSTOMER', email, address, phone_number)
     customers.append(email)
@@ -58,7 +58,7 @@ for i in range(5):
     first_name = names.get_first_name()
     last_name = names.get_last_name()
     email = first_name + '.' + last_name + '@email.com'
-    address = str(random.randint(1, 999)) + random.choice(trailing_address)
+    address = str(random.randint(1, 999)) + ' ' + random.choice(trailing_address)
     phone_number = random.randint(1e9, 9e9)
     manager.insert('SELLER', email, address, phone_number)
     sellers.append(email)
@@ -74,7 +74,6 @@ for i in range(5):
 #     employees.append(email)
 
 item_sellers = []
-# put 5 items in db
 for i in range(5):
     seller = random.choice(sellers)
     item_id = random.randint(1, 10)
@@ -89,15 +88,14 @@ for i in range(5):
     order_no = random.randint(1, 1e5)
     total_number_of_items = random.randint(1, len(items) - 1)
     date_ordered = str(random.randint(2000, 2050)) + '-' + str(random.randint(1, 12)) + '-' + str(random.randint(1, 30))
-    manager.insert('ORDERS', order_no, total_number_of_items, date_ordered)
+    manager.insert('ORDERS', order_no, customers[i], total_number_of_items, date_ordered)
     orders.append(order_no)
 
 for i in range(len(orders)):
     item = items[i]
     item_seller = item_sellers[i]
-    order = orders[i]
     price = random.randint(1, 50)
-    name = 'item_name: ' + str(item) + str(random.randint(1, 100))
-    item_type = 'item_type: ' + str(item) + str(random.randint(1, 100))
-    number_of_items_bought = 3
-    manager.insert('ITEMS_BOUGHT', item_seller, item, order, price, name, item_type, number_of_items_bought)
+    name = 'item_name: {}{}'.format('name', str(i))
+    item_type = 'item_type: {}{}'.format('type', str(i))
+    number_of_items_bought = 5
+    manager.insert('ITEMS_BOUGHT', item_seller, item, i + 1, price, name, item_type, number_of_items_bought)

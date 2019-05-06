@@ -1,6 +1,6 @@
 import sqlite3
 from typing import List
-
+from datetime import datetime
 
 class DatabaseManager:
 
@@ -8,16 +8,27 @@ class DatabaseManager:
     def __init__(self, filename: str):  
         self.conn = sqlite3.connect(filename, check_same_thread=False) 
         self.conn.execute('PRAGMA foreign_keys = 1')
+        self.create_all_tables()
         self.cur = self.conn.cursor()
+
 
     def create_table(self, create_table_statement: str) -> None:
         self.cur.execute(create_table_statement)
         self.conn.commit()
 
+
+    def create_all_tables(self):
+        # TODO
+        pass
+
+
     def insert(self, table_name: str, *values) -> None:
         if table_name.upper() == 'ITEM':
             self.insert_item(*values)
             self.insert_if_item(table_name, *values)
+            return
+        if table_name.upper() == 'ORDERS':
+            self.insert_if_order(table_name, *values)
             return
         qmark = ("?," * len(values)).rstrip(",")
         with self.conn:
@@ -25,9 +36,12 @@ class DatabaseManager:
             self.cur.execute('INSERT INTO {} VALUES({})'.format(table_name, qmark), values)
             self.insert_if(table_name, *values) 
 
+
     def insert_if(self, table_name: str, *values) -> None:
         self.insert_if_items_bought(table_name, *values)
         self.insert_if_customer(table_name, *values)
+        self.insert_if_order(table_name, *values)
+
 
     def insert_if_user(self, table_name: str, *values) -> None:
         is_customer = (table_name.upper() == 'CUSTOMER')
@@ -38,6 +52,7 @@ class DatabaseManager:
             values = ('first_name', 'last_name', email)
             self.insert('USER', *values)
 
+
     def insert_if_customer(self, table_name: str, *values) -> None:
         if table_name != 'CUSTOMER':
             return
@@ -47,18 +62,76 @@ class DatabaseManager:
         else:
             current_max = self.retrieve_max_cart_id()[0]
             self.insert('SHOPPING_CART', current_max + 1, 0, 0)
-            self.insert('HAS_SHOPPING_CART', values[0], current_max + 1)   
+            self.insert('HAS_SHOPPING_CART', values[0], current_max + 1)  
 
-    def retrieve_max_cart_id(self) -> int:
+
+    def insert_if_order(self, table_name: str, *values) -> None:
+        if table_name.upper() == 'ORDERS':
+            order_number, customer_email, total_number_of_items, date_ordered = values
+            # date_ordered = datetime.now().strftime("%B %d, %Y %I:%M%p")
+            cart_id = self.retrieve_customer_cart_id(customer_email)
+            if self.count_rows('ORDERS', '*') == 0:
+                # total_number_of_items = self.retrieve_total_number_of_items_from_order(order_number)
+                self.insert_order(1, customer_email, total_number_of_items, date_ordered)
+                self.conn.commit()
+                self.insert('ORDER_PLACED', customer_email, cart_id, 1)
+                self.conn.commit()
+            else:
+                current_max = self.retrieve_max_order_number()
+                self.insert_order(current_max + 1, customer_email, total_number_of_items, date_ordered)
+                self.conn.commit()
+                self.insert('ORDER_PLACED', customer_email, cart_id, current_max + 1)
+                self.conn.commit()
+
+    def retrieve_customer_cart_id(self, customer_email: str) -> int:
         self.cur.execute(
             """
             SELECT cart_id
             FROM has_shopping_cart
-            ORDER BY cart_id DESC
+            WHERE customer_email = '{}'
+            LIMIT 1
+            """
+            .format(customer_email)
+        )
+        cart_id_entry = self.cur.fetchone()
+        return cart_id_entry[0] if cart_id_entry is not None else None
+
+    def insert_order(self, *values):
+        order_number, customer_email, total_number_of_items, date_ordered = values
+        self.cur.execute(
+            """
+            INSERT INTO orders
+            VALUES({}, '{}', {}, '{}')
+            """
+            .format(order_number, customer_email, total_number_of_items, date_ordered)
+        )
+        self.conn.commit()
+
+    def retrieve_total_number_of_items_from_order(self, order_number:int) -> int:
+        self.cur.execute(
+            """
+            SELECT COUNT(*)
+            FROM items_bought
+            WHERE order_number = {}
+            """
+            .format(order_number)
+        )
+        result = self.cur.fetchone()
+        return result[0] if result is not None else 1
+
+
+    def retrieve_max_order_number(self) -> int:
+        self.cur.execute(
+            """
+            SELECT order_number
+            FROM orders
+            ORDER BY order_number DESC
             LIMIT 1
             """
         )
-        return self.cur.fetchone()
+        max_order_number = self.cur.fetchone()
+        return max_order_number[0] if max_order_number is not None else 1
+
 
     def insert_if_items_bought(self, table_name: str, *values) -> None:
         if table_name.upper() == 'ITEMS_BOUGHT':
@@ -81,15 +154,36 @@ class DatabaseManager:
                 """
                 UPDATE item
                 SET quantity = quantity - {}
-                WHERE seller_email = (SELECT seller_email FROM items_bought WHERE item.seller_email = items_bought.seller_email AND item.item_id = items_bought.item_id AND items_bought.order_number = {})
-                    AND item_id = (SELECT item_id FROM items_bought WHERE item.seller_email = items_bought.seller_email AND item.item_id = items_bought.item_id AND items_bought.order_number = {})
+                WHERE 
+                    seller_email = (
+                        SELECT seller_email
+                        FROM items_bought
+                        WHERE
+                            item.seller_email = items_bought.seller_email
+                            AND
+                            item.item_id = items_bought.item_id
+                            AND
+                            items_bought.order_number = {}
+                    )
+                    AND
+                    item_id = (
+                        SELECT item_id
+                        FROM items_bought
+                        WHERE
+                            item.seller_email = items_bought.seller_email
+                            AND
+                            item.item_id = items_bought.item_id
+                            AND
+                            items_bought.order_number = {}
+                    )
                 """
                 .format(
-                    order_number, order_number,
-                    number_of_items_bought
+                    number_of_items_bought,
+                    order_number, order_number
                 )
             )
             self.conn.commit()
+
 
     def insert_item(self, *values) -> None:
         seller_email, item_id, quantity, price, name, item_type = values
@@ -102,7 +196,8 @@ class DatabaseManager:
         )
         self.conn.commit()
 
-    def insert_if_item(self, table_name: str, *values):
+
+    def insert_if_item(self, table_name: str, *values) -> None:
         if table_name.upper() == 'ITEM':
             seller_email, item_id, quantity, price, name, item_type = values
             self.cur.execute(
@@ -121,19 +216,49 @@ class DatabaseManager:
         self.cur.execute('UPDATE {} SET {} WHERE {}'.format(table_name, modifications, filters))
         self.conn.commit()
 
+    def update_item(self, seller_email: str, item_id: int, new_name: str, new_quantity: int, new_price: float) -> None:
+        self.cur.execute(
+            """
+            UPDATE item
+            SET name = '{}', quantity = {}, price = {}
+            WHERE seller_email = '{}' AND item_id = {}
+            """
+            .format(
+                new_name, new_quantity, new_price,
+                seller_email, item_id
+            )
+        )
+        self.conn.commit()
+
     def delete(self, table_name: str, filters: str) -> None:
         self.cur.execute('DELETE {} WHERE {}'.format(table_name, filters))
         self.conn.commit()
+
 
     def delete_user(self, filters: str) -> None:
         self.delete('USER', '{}'.format(filters))
         self.conn.commit()
 
+
     def has_rows(self, table_name: str, selected_attributes: str, filters: str = None) -> bool:
         return self.count_rows(table_name, selected_attributes, filters) > 0
 
+
     def count_rows(self, table_name: str, selected_attributes: str, filters: str = None) -> int:
         return len(self.retrieve_rows(table_name, selected_attributes, filters))
+
+
+    def retrieve_max_cart_id(self) -> int:
+        self.cur.execute(
+            """
+            SELECT cart_id
+            FROM has_shopping_cart
+            ORDER BY cart_id DESC
+            LIMIT 1
+            """
+        )
+        return self.cur.fetchone()
+
 
     def retrieve_rows(self, table_name: str, selected_attributes: str, filters: str = None) -> List:
         if filters is None:
@@ -144,6 +269,7 @@ class DatabaseManager:
             return self.cur.fetchall()  
         except sqlite3.OperationalError:
             return []
+
 
     def retrieve_row(self, table_name: str, selected_attributes: str, filters: str = None) -> List:
         if filters is None:
@@ -156,12 +282,11 @@ class DatabaseManager:
             return []
 
 
-    # transactions with database #
-
     def add_to_cart(self, customer_email: str, item_id: int) -> None:
         pass
 
-    def retrieve_popular_items(self, row_count: int = None):
+
+    def retrieve_popular_items(self, row_count: int = None) -> List:
         if row_count is None:
             row_count = self.count_rows('ITEMS_BOUGHT', '*')
         self.cur.execute(
@@ -177,35 +302,38 @@ class DatabaseManager:
             .format(row_count)
         )
         try:
-            popular_items = [(entry[0], '$' + str(entry[1]), entry[2]) for entry in self.cur.fetchall()]
-            return popular_items
+            return self.cur.fetchall()
         except sqlite3.OperationalError:
             return []
 
-    def retrieve_all_items(self):
+
+    def retrieve_all_items(self) -> List:
         try:
-            all_items = [(entry[0], '$' + str(entry[1])) for entry in self.retrieve_rows('ITEM', 'name, price')]
-            return all_items
+            return self.retrieve_rows('ITEM', 'name', 'price')
         except sqlite3.OperationalError:
             return []
 
-    def retrieve_available_items(self):
+
+    def retrieve_available_items(self) -> List:
         try:
             return self.retrieve_rows('ITEM', 'item_id, name, quantity, price', ' quantity > 0 ')
         except sqlite3.OperationalError:
             return []
 
-    def retrieve_out_of_stock_items(self):
+
+    def retrieve_out_of_stock_items(self) -> List:
         try:
             return self.retrieve_rows('ITEM', 'item_id, name, quantity, price', ' quantity = 0')
         except sqlite3.OperationalError:
             return []
 
-    def retrieve_sellers(self):
+
+    def retrieve_sellers(self) -> List:
         try:
             return self.retrieve_rows('SELLER', 'email, address, phone_number')
         except sqlite3.OperationalError:
             return []
+
 
     def retrieve_items_by_seller(self, seller_email: str) -> List:
         self.cur.execute(
@@ -216,8 +344,11 @@ class DatabaseManager:
             """
             .format(seller_email)
         )
-        items_by_seller = [(entry[0], entry[1], entry[2], '$' + str(entry[3]), entry[4]) for entry in self.cur.fetchall()]
-        return items_by_seller
+        try:
+            return self.cur.fetchall()
+        except sqlite3.OperationalError:
+            return []
+
 
     def retrieve_orders_by_customer(self, customer_email: str) -> List:
         try:
@@ -225,12 +356,14 @@ class DatabaseManager:
         except sqlite3.OperationalError:
             return []
 
+
     def retrieve_items_from_order(self, order_number: int) -> List:
         try:
             return self.retrieve_rows('ITEMS_BOUGHT', 'name, number_of_items_bought', ' order_number = {} '.format(order_number))
         except sqlite3.OperationalError:
             return []            
         
+
     # testing
     def retrieve_items_from_shopping_cart(self, customer_email: str) -> List:
         self.cur.execute(
@@ -247,16 +380,20 @@ class DatabaseManager:
         )
         return self.cur.fetchall()
 
+
     def delete_table(self, table_name: str) -> None:
         self.cur.execute('DROP TABLE {}'.format(table_name))
         self.cur.commit()
+
 
     def close_db(self) -> None:
         self.cur.close()
         self.conn.close()
 
+
     def get_cursor(self):
         return self.cur
+
 
     def get_conn(self):
         return self.conn

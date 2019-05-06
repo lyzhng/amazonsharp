@@ -99,10 +99,6 @@ ITEMS_IN_SHOPPING_CART = """
         cart_id INTEGER,
         seller_email TINYTEXT,
         item_id INTEGER,
-        price DOUBLE NOT NULL
-            CHECK(price >= 0),
-        name TINYTEXT NOT NULL,
-        type TINYTEXT NOT NULL,
         number_of_items_bought INTEGER NOT NULL,
         PRIMARY KEY(cart_id, seller_email, item_id),
         FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
@@ -114,12 +110,14 @@ ITEMS_IN_SHOPPING_CART = """
     )
 """
 
-HAS_SHOPPING_CART = """
-    CREATE TABLE IF NOT EXISTS has_shopping_cart(
-        customer_email TINYTEXT NOT NULL,
-        cart_id INTEGER PRIMARY KEY,
-        FOREIGN KEY(customer_email) REFERENCES customer(email),
-        FOREIGN KEY(cart_id) REFERENCES shopping_cart(cart_id)
+INVENTORY = """
+    CREATE TABLE IF NOT EXISTS inventory(
+        seller_email TINYTEXT,
+        item_id INTEGER,
+        PRIMARY KEY(seller_email, item_id),
+        FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE
     )
 """
 
@@ -134,19 +132,30 @@ SHOPPING_CART = """
     )
 """
 
+HAS_SHOPPING_CART = """
+    CREATE TABLE IF NOT EXISTS has_shopping_cart(
+        customer_email TINYTEXT NOT NULL,
+        cart_id INTEGER PRIMARY KEY,
+        FOREIGN KEY(customer_email) REFERENCES customer(email),
+        FOREIGN KEY(cart_id) REFERENCES shopping_cart(cart_id)
+    )
+"""
+
 ORDERS = """
     CREATE TABLE IF NOT EXISTS orders(
         order_number INTEGER PRIMARY KEY,
+        customer_email TINYTEXT NOT NULL,
         total_number_of_items INTEGER NOT NULL
             CHECK(total_number_of_items >= 1),
-        date_ordered DATE NOT NULL
+        date_ordered DATE NOT NULL,
+        FOREIGN KEY(customer_email) REFERENCES customer(email)
     )
 """
 
 ORDER_PLACED = """
     CREATE TABLE IF NOT EXISTS order_placed(
         customer_email TINYTEXT,
-        cart_id INTEGER NOT NULL UNIQUE,
+        cart_id INTEGER NOT NULL,
         order_number INTEGER NOT NULL,
         PRIMARY KEY(cart_id, order_number),
         FOREIGN KEY(customer_email) REFERENCES customer(email)
@@ -172,17 +181,6 @@ BANK_CARD = """
         FOREIGN KEY(account_email) REFERENCES customer(email)
             ON DELETE CASCADE
             ON UPDATE CASCADE,
-    )
-"""
-
-INVENTORY = """
-    CREATE TABLE IF NOT EXISTS inventory(
-        seller_email TINYTEXT,
-        item_id INTEGER,
-        PRIMARY KEY(seller_email, item_id),
-        FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
     )
 """
 

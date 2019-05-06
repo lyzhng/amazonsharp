@@ -144,7 +144,10 @@ class DatabaseManager:
                 self.cur.execute('SELECT {} FROM {}'.format(selected_attributes, table_name))
             else:
                 self.cur.execute('SELECT {} FROM {} WHERE {}'.format(selected_attributes, table_name, filters))
-            return self.cur.fetchall()  
+            try:
+                return self.cur.fetchall()  
+            except sqlite3.OperationalError:
+                return []
 
     def retrieve_row(self, table_name: str, selected_attributes: str, filters: str = None) -> List:
         with LOCK:
@@ -152,7 +155,11 @@ class DatabaseManager:
                 self.cur.execute('SELECT {} FROM {}'.format(selected_attributes, table_name))
             else:
                 self.cur.execute('SELECT {} FROM {} WHERE {}'.format(selected_attributes, table_name, filters))
-            return self.cur.fetchone()  
+            try:
+                return self.cur.fetchone()  
+            except sqlite3.OperationalError:
+                return []
+
 
     # transactions with database #
 
