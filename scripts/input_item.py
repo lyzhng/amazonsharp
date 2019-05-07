@@ -38,7 +38,7 @@ try:
         item_name = input('Item name: ')
         item_type = input('Item type: ')
         print('Creating item listing...')
-        manager.insert('ITEM', seller_email, quantity, price, item_name, item_type)
+        manager.insert_item(seller_email, quantity, price, item_name, item_type)
         print('Item listing has been created!')
 except KeyboardInterrupt:
     print('\nBye!')
