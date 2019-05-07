@@ -7,9 +7,9 @@
 		<v-flex xs5 md5>
 			<v-card-title primary-title>
 				<div>
-					<div class="headline">{{ this.name }}</div>
-					<div>{{ this.price }}</div>
-                    <div>Quantity: {{ this.quantity }}</div>
+					<div class="headline">{{ name }}</div>
+					<div>{{ price }}</div>
+                    <div>Quantity: {{ quantity }}</div>
 				</div>
 			</v-card-title>
 		</v-flex>
@@ -19,9 +19,10 @@
                     <template v-slot:activator="{ on }">
 					    <v-icon class="mr-3" v-on="on">edit</v-icon>
                     </template>
-                    <new-item-component action="Edit" :name="this.name":price="this.price"
+                    <new-item-component action="Edit" :name="this.name" :price="this.price"
                                         :image-path="this.imagePath" :quantity="this.quantity"
-                                        v-model="dialog">
+                                        :seller-email="this.sellerEmail" :item-id="this.itemId"
+										@update_vars="update_vars">
                     </new-item-component>
                 </v-dialog>
 				<v-icon class="ml-3" color="red" v-on="on">delete</v-icon>
@@ -43,7 +44,17 @@ export default {
         drawer: false,
     }),
     methods: {
+		update_vars(event) {
+			if (event['name'] !== undefined)
+				this.name = event['name'];
+			if (event['price'] !== undefined)
+				this.price = event['price'];
+			if (event['quantity'] !== undefined)
+				this.quantity = event['quantity'];
+			if (event['dialog'] !== undefined)
+				this.dialog = event['dialog'];
+		},
     },
-    props: ['name', 'price', 'imagePath', 'quantity'],
+    props: ['name', 'price', 'imagePath', 'quantity', 'sellerEmail', 'itemId'],
 }
 </script>

@@ -43,7 +43,9 @@
 	 			<v-layout column>
 					<v-divider></v-divider>
 	  				<v-flex v-for="(item, i) in items" :key="i">
-	  					<sell-items-preview-component :name="item.name" :price="item.price" :image-path="item.image-path" :quantity="item.quantity"></sell-items-preview-component>
+	  					<sell-items-preview-component :seller-email="item[0]" :item-id="item[1]" :name="item[2]"
+						:price="item[3]" :image-path="item[0]/item[1]" :quantity="item[4]">
+						</sell-items-preview-component>
 	  				</v-flex>
 	  			</v-layout>
 			</v-card>
@@ -65,28 +67,26 @@ export default {
     data: () => ({
         dialog: false,
         drawer: true,
-		items: [
-			{'name': 'Item A', 'price': '$9.99', quantity: 3, 'image-path': 'randomPath'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-			{'name': 'Item B', 'price': '$10.99', quantity: 3, 'image-path': 'randomPath2'},
-		],
+		items: null,
     }),
+	async mounted() {
+		const response = await fetch(`/get_items/${this.username}`);
+        if (response.ok) {
+            this.items = await response.json();
+        } else {
+            alert('There was a problem communicating with the server, please try again later.');
+            return
+        }
+
+		if (this.items === null) {
+            this.items = [];
+        }
+	},
     methods: {
 		postNewItemForSale() {
 			console.log("Seller wants to post new item for sale!");
 		},
     },
-    props: ['loggedInState'],
+    props: ['loggedInState', 'username'],
 }
 </script>

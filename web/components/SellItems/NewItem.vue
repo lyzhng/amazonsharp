@@ -7,12 +7,12 @@
         <v-container>
             <v-layout column>
                 <v-layout row>
-                    <v-text-field label="Name" :value="this.name" required autofocus></v-text-field>
+                    <v-text-field label="Name" v-model="name" required autofocus></v-text-field>
                     <v-spacer></v-spacer>
-                    <v-text-field label="Price" :value="this.price" required></v-text-field>
+                    <v-text-field label="Price" v-model="price" required></v-text-field>
                 </v-layout row>
                 <v-layout row>
-                    <v-text-field type="number" label="Quantity" :value="this.quantity" required></v-text-field>
+                    <v-text-field type="number" label="Quantity" v-model="quantity" required></v-text-field>
                 </v-layout>
 				<v-layout row>
 					<upload-btn class="ma-0 pa-0" title="Upload Image" accept="image/*" :fileChangedCallback="fileUpload"></upload-btn>
@@ -22,8 +22,8 @@
     </v-card-text>
     <v-card-action>
         <v-layout row justify-end>
-            <v-btn class="mb-2" color="blue darken-1" flat @click="$emit('input', false)">Save</v-btn>
-            <v-btn class="mb-2" color="blue darken-1" flat @click="$emit('input', false)">Quit</v-btn> 
+            <v-btn class="mb-2" color="blue darken-1" flat @click="sendData(); $emit('update_vars', {'name': name, 'price': price, 'quantity': quantity, 'dialog': false});">Save</v-btn>
+            <v-btn class="mb-2" color="blue darken-1" flat @click="$emit('update_vars', {'dialog': false})">Quit</v-btn> 
         </v-layout>
     </v-card-action>
 	<v-dialog v-model="this.fileTypeNotMatch" persistent light max-width="600px">
@@ -66,9 +66,12 @@ export default {
     name: 'NewItemComponent',
     components: {'upload-btn': UploadButton},
     data: () => ({
-		fileUploaded: false,
 		fileTypeNotMatch: false,
 		fileSizeTooBig: false,
+
+		name: this.name,
+		price: this.price,
+		quantity: this.quantity,
     }),
     methods: {
 		removeFileTypeNotMatchDialog() {
@@ -92,15 +95,26 @@ export default {
 			var formData = new FormData();
 			formData.append('image', file);
 
-			// var uploadURL = `/upload_image/${this.seller_email}/${item_id}`;
+			// var uploadURL = `/upload_image/${this.sellerEmail}/${this.itemId}`;
 			var uploadURL = '/upload_image/testing/123';
 
 			var xhr = new XMLHttpRequest();
 			xhr.open("POST", uploadURL, true);
 			xhr.send(formData);
-			this.fileUploaded = true;
-		}
+		},
+		sendData() {
+			var formData = new FormData();
+			formData.append('name', this.name);
+			formData.append('price', this.price);
+			formData.append('quantity', this.quantity);
+
+			var uploadURL = `/add_item/${this.sellerEmail}/${this.itemId}`;
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", uploadURL, true);
+			xhr.send(formData);
+		},
     },
-    props: ['action', 'name', 'price', 'imagePath', 'quantity', 'dialog'],
+    props: ['action', 'name', 'price', 'imagePath', 'quantity', 'sellerEmail', 'itemId'],
 }
 </script>
