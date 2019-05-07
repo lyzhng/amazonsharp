@@ -19,20 +19,7 @@ manager = db_manager_no_lock.DatabaseManager(config.get_value(config.DB_NAME))
 trailing_address = ['Street', 'Road', 'City']
 
 # tables
-manager.create_table(CREATE_CONSTANTS.USER) # how will i get first_name and second_name? front-end
-manager.create_table(CREATE_CONSTANTS.SELLER) # works
-manager.create_table(CREATE_CONSTANTS.CUSTOMER) # works
-manager.create_table(CREATE_CONSTANTS.EMPLOYEE) # works
-
-manager.create_table(CREATE_CONSTANTS.ITEM) # works
-manager.create_table(CREATE_CONSTANTS.INVENTORY) 
-manager.create_table(CREATE_CONSTANTS.SHOPPING_CART) # works
-manager.create_table(CREATE_CONSTANTS.HAS_SHOPPING_CART) # works
-manager.create_table(CREATE_CONSTANTS.ORDERS) # works
-manager.create_table(CREATE_CONSTANTS.ORDER_PLACED) 
-manager.create_table(CREATE_CONSTANTS.ITEMS_BOUGHT) 
-manager.create_table(CREATE_CONSTANTS.ITEM_FREQUENCY)
-manager.create_table(CREATE_CONSTANTS.ITEMS_IN_SHOPPING_CART)
+manager.create_all_tables()
 
 customers = []
 customers_cart_map = {}
@@ -80,7 +67,7 @@ for i in range(5):
     price = random.randint(1, 10)
     name = 'ITEM: ' + 'name' + str(i)
     item_type = 'ITEM_TYPE: ' + 'type' + str(i)
-    manager.insert('ITEM', seller, item_id, 100, price, name, item_type)
+    manager.insert_item(seller, 100, price, name, item_type)
     items.append(item_id)
     item_sellers.append(seller)
 
@@ -91,12 +78,4 @@ for i in range(5):
     manager.insert('ORDERS', order_no, customers[i], total_number_of_items, date_ordered)
     orders.append(order_no)
 
-for i in range(len(orders)):
-    item_seller = item_sellers[i]
-    max_id = manager.retrieve_max_item_id_by_seller(item_seller)
-    item = random.randint(1, max_id)
-    price = random.randint(1, 50)
-    name = 'item_name: {}{}'.format('name', str(i))
-    item_type = 'item_type: {}{}'.format('type', str(i))
-    number_of_items_bought = 5
-    manager.insert('ITEMS_BOUGHT', item_seller, item, i+1, price, name, item_type, number_of_items_bought)
+# manager.insert_items_bought('Sharon.Cruz@email.com', 2, 50, 'chair', 'office', 5)
