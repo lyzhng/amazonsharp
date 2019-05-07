@@ -257,7 +257,7 @@ class DatabaseManager:
                 .format(seller_email, item_id + 1)
             )
             self.conn.commit()
-
+            return 
 
     def update(self, table_name: str, modifications: str, filters: str) -> None:
         with LOCK:
@@ -311,8 +311,26 @@ class DatabaseManager:
                 """
                 .format(seller_email, item_id)
             )
-            return self.cur.fetchone()
+            try: 
+                return self.cur.fetchone()
+            except sqlite3.OperationalError:
+                return []
 
+
+    def retrieve_item_by_seller(self, seller_email: str, item_id: int):
+        with LOCK:
+            self.cur.execute(
+                """
+                SELECT item.seller_email, item.item_id, item.name, item.price, item.quantity
+                FROM item
+                WHERE item.seller_email = '{}' AND item.item_id = {}
+                """
+                .format(seller_email, item_id)
+            )
+            try:
+                return self.cur.fetchone()
+            except sqlite3.OperationalError:
+                return []
 
     def retrieve_max_cart_id(self) -> int:
         with LOCK:
@@ -324,7 +342,10 @@ class DatabaseManager:
                 LIMIT 1
                 """
             )
-            return self.cur.fetchone()
+            try: 
+                return self.cur.fetchone()
+            except sqlite3.OperationalError:
+                return []
 
 
     def retrieve_rows(self, table_name: str, selected_attributes: str, filters: str = None) -> List:

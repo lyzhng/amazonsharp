@@ -394,14 +394,28 @@ class DatabaseManager:
     def retrieve_items_by_seller(self, seller_email: str) -> List:
         self.cur.execute(
             """
-            SELECT item.seller_email, item.item_id, item.name, item.price, item.quantity
+            SELECT seller_email, item_id, name, price, quantity
             FROM item
-            WHERE item.seller_email = '{}'
+            WHERE seller_email = '{}'
             """
             .format(seller_email)
         )
         try:
             return self.cur.fetchall()
+        except sqlite3.OperationalError:
+            return []
+
+    def retrieve_item_by_seller(self, seller_email: str, item_id: int):
+        self.cur.execute(
+            """
+            SELECT item.seller_email, item.item_id, item.name, item.price, item.quantity
+            FROM item
+            WHERE item.seller_email = '{}' AND item.item_id = {}
+            """
+            .format(seller_email, item_id)
+        )
+        try:
+            return self.cur.fetchone()
         except sqlite3.OperationalError:
             return []
 
