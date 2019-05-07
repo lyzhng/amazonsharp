@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-	<app data-logged-in-state="{{ is_logged_in }}"></app>
+	<app data-logged-in-state="{{ is_logged_in }}" data-username="{{ username }}"></app>
 	<script src="/public/components/sellitems.js"></script>
 {% endblock %}
 
