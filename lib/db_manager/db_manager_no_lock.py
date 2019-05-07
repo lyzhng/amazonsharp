@@ -1,7 +1,15 @@
+import os
+import sys
+
+__DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+__ROOT_PATH = os.path.normpath(os.path.join(__DIR_PATH, '../..'))
+if __ROOT_PATH not in sys.path:
+    sys.path.append(__ROOT_PATH)
+
 import sqlite3
 from typing import List
 from datetime import datetime
-
+from lib.db_manager import db_create_constants as CREATE_CONSTANTS
 
 
 class DatabaseManager:
@@ -9,41 +17,40 @@ class DatabaseManager:
 
     def __init__(self, filename: str):  
         self.conn = sqlite3.connect(filename, check_same_thread=False) 
-        self.conn.execute('PRAGMA foreign_keys = 1')
-        # self.create_all_tables()
         self.cur = self.conn.cursor()
+        self.conn.execute('PRAGMA foreign_keys = 1')
+        self.create_all_tables()
+        self.conn.commit()
 
 
     def create_table(self, create_table_statement: str) -> None:
         self.cur.execute(create_table_statement)
         self.conn.commit()
 
-
     def create_all_tables(self):
         self.create_table(CREATE_CONSTANTS.USER) 
         self.create_table(CREATE_CONSTANTS.SELLER)
         self.create_table(CREATE_CONSTANTS.CUSTOMER)
-        self.create_table(CREATE_CONSTANTS.EMPLOYEE)
+        self.create_table(CREATE_CONSTANTS.EMPLOYEE) 
         self.create_table(CREATE_CONSTANTS.ITEM)
-        self.create_table(CREATE_CONSTANTS.INVENTORY) 
-        self.create_table(CREATE_CONSTANTS.SHOPPING_CART) 
+        self.create_table(CREATE_CONSTANTS.INVENTORY)
+        self.create_table(CREATE_CONSTANTS.SHOPPING_CART)
         self.create_table(CREATE_CONSTANTS.HAS_SHOPPING_CART)
+        self.create_table(CREATE_CONSTANTS.ITEMS_IN_SHOPPING_CART)
         self.create_table(CREATE_CONSTANTS.ORDERS)
         self.create_table(CREATE_CONSTANTS.ORDER_PLACED) 
         self.create_table(CREATE_CONSTANTS.ITEMS_BOUGHT) 
         self.create_table(CREATE_CONSTANTS.ITEM_FREQUENCY)
-        self.create_table(CREATE_CONSTANTS.ITEMS_IN_SHOPPING_CART)
 
 
+    # [WARNING] Use insert_item for inserting items
     def insert(self, table_name: str, *values) -> None:
-        if table_name.upper() == 'ITEM':
-            self.insert_item(*values)
-            return
         if table_name.upper() == 'ORDERS':
             self.insert_if_order(table_name, *values)
             return
         if table_name.upper() == 'ITEMS_BOUGHT':
-            print(values)
+            self.insert_items_bought(*values)
+            return
         qmark = ("?," * len(values)).rstrip(",")
         with self.conn:
             self.insert_if_user(table_name, *values)
@@ -51,8 +58,23 @@ class DatabaseManager:
             self.insert_if(table_name, *values) 
 
 
+    def insert_items_bought(self, seller_email: str, item_id: int, price: float, name: str, item_type: str, number_of_items_bought: int): 
+        order_number = self.retrieve_max_order_number()
+        print(seller_email)
+        print(item_id)
+        print(order_number)
+        self.cur.execute(
+            """
+            INSERT INTO items_bought(seller_email, item_id, order_number, price, name, type, number_of_items_bought)
+            VALUES('{}', {}, {}, {}, '{}', '{}', {})
+            """
+            .format(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
+        )
+        self.conn.commit()
+        self.handle_frequency_and_quantity(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
+
+
     def insert_if(self, table_name: str, *values) -> None:
-        self.insert_if_items_bought(table_name, *values)
         self.insert_if_customer(table_name, *values)
         self.insert_if_order(table_name, *values)
 
@@ -158,63 +180,61 @@ class DatabaseManager:
             """
         )
         max_order_number = self.cur.fetchone()
-        return max_order_number[0] if max_order_number is not None else 1
+        return max_order_number[0] if max_order_number is not None else 0
 
 
-    def insert_if_items_bought(self, table_name: str, *values) -> None:
-        if table_name.upper() == 'ITEMS_BOUGHT':
-            seller_email, item_id, order_number, price, name, item_type, number_of_items_bought = values
-            self.cur.execute(
-                """
-                INSERT INTO item_frequency(seller_email, item_id, frequency)
-                VALUES('{}', {}, {})
-                ON CONFLICT(seller_email, item_id) 
-                DO UPDATE
-                SET frequency = frequency + {}
-                """
-                .format(
-                    seller_email, item_id, number_of_items_bought,
-                    number_of_items_bought
-                )
+    def handle_frequency_and_quantity(self, *values) -> None:
+        seller_email, item_id, order_number, price, name, item_type, number_of_items_bought = values
+        self.cur.execute(
+            """
+            INSERT INTO item_frequency(seller_email, item_id, frequency)
+            VALUES('{}', {}, {})
+            ON CONFLICT(seller_email, item_id) 
+            DO UPDATE
+            SET frequency = frequency + {}
+            """
+            .format(
+                seller_email, item_id, number_of_items_bought,
+                number_of_items_bought
             )
-            self.conn.commit()
-            self.cur.execute(
-                """
-                UPDATE item
-                SET quantity = quantity - {}
-                WHERE 
-                    seller_email = (
-                        SELECT seller_email
-                        FROM items_bought
-                        WHERE
-                            item.seller_email = items_bought.seller_email
-                            AND
-                            item.item_id = items_bought.item_id
-                            AND
-                            items_bought.order_number = {}
-                    )
-                    AND
-                    item_id = (
-                        SELECT item_id
-                        FROM items_bought
-                        WHERE
-                            item.seller_email = items_bought.seller_email
-                            AND
-                            item.item_id = items_bought.item_id
-                            AND
-                            items_bought.order_number = {}
-                    )
-                """
-                .format(
-                    number_of_items_bought,
-                    order_number, order_number
+        )
+        self.conn.commit()
+        self.cur.execute(
+            """
+            UPDATE item
+            SET quantity = quantity - {}
+            WHERE 
+                seller_email = (
+                    SELECT seller_email
+                    FROM items_bought
+                    WHERE
+                        item.seller_email = items_bought.seller_email
+                        AND
+                        item.item_id = items_bought.item_id
+                        AND
+                        items_bought.order_number = {}
                 )
+                AND
+                item_id = (
+                    SELECT item_id
+                    FROM items_bought
+                    WHERE
+                        item.seller_email = items_bought.seller_email
+                        AND
+                        item.item_id = items_bought.item_id
+                        AND
+                        items_bought.order_number = {}
+                )
+            """
+            .format(
+                number_of_items_bought,
+                order_number, order_number
             )
-            self.conn.commit()
+        )
+        self.conn.commit()
 
 
-    def insert_item(self, *values) -> None:
-        seller_email, quantity, price, name, item_type = values
+    def insert_item(self, seller_email: str, quantity: int, price: float, name: str, item_type: str) -> None:
         item_id = self.retrieve_max_item_id_by_seller(seller_email)
         self.cur.execute(
             """
@@ -400,7 +420,7 @@ class DatabaseManager:
             return []            
         
 
-    # testing
+    # [TESTING]
     # def retrieve_items_from_shopping_cart(self, customer_email: str) -> List:
     #     self.cur.execute(
     #         """ 
