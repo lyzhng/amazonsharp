@@ -104,7 +104,7 @@ class DatabaseManager:
     def insert_if_order(self, table_name: str, *values) -> None:
         if table_name.upper() == 'ORDERS':
             order_number, customer_email, total_number_of_items, date_ordered = values
-            # date_ordered = datetime.now().strftime("%B %d, %Y %I:%M%p")
+            date_ordered = datetime.now().strftime("%B %d, %Y %I:%M%p")
             cart_id = self.retrieve_customer_cart_id(customer_email)
             if self.count_rows('ORDERS', '*') == 0:
                 # total_number_of_items = self.retrieve_total_number_of_items_from_order(order_number)
@@ -143,18 +143,17 @@ class DatabaseManager:
         )
         self.conn.commit()
 
-    # def retrieve_total_number_of_items_from_order(self, order_number:int) -> int:
-    #     self.cur.execute(
-    #         """
-    #         SELECT *
-    #         FROM items_bought
-    #         WHERE order_number = {}
-    #         """
-    #         .format(order_number)
-    #     )
-    #     result = self.cur.fetchone()
-    #     return result
-
+    def retrieve_total_number_of_items_from_order(self, order_number:int) -> int:
+        self.cur.execute(
+            """
+            SELECT *
+            FROM items_bought
+            WHERE order_number = {}
+            """
+            .format(order_number)
+        )
+        result = self.cur.fetchone()
+        return result
 
     def retrieve_max_item_id_by_seller(self, seller_email: str):
         self.cur.execute(
@@ -234,7 +233,7 @@ class DatabaseManager:
         self.conn.commit()
 
 
-    def insert_item(self, seller_email: str, quantity: int, price: float, name: str, item_type: str) -> None:
+    def insert_item(self, seller_email: str, quantity: int, price: float, name: str, item_type: str) -> int:
         item_id = self.retrieve_max_item_id_by_seller(seller_email)
         self.cur.execute(
             """
@@ -254,6 +253,7 @@ class DatabaseManager:
             .format(seller_email, item_id + 1)
         )
         self.conn.commit()
+        return item_id + 1
 
 
     def update(self, table_name: str, modifications: str, filters: str) -> None:
