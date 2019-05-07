@@ -9,9 +9,11 @@ if __ROOT_PATH not in sys.path:
 import flask
 import http;
 from lib.security import security
-
+from lib.config import config
+from lib.db_manager import db_manager
 SELLER_VIEWS = flask.Blueprint('seller_views', __name__)
 
+manager = db_manager.DatabaseManager(config.get_value(config.DB_NAME))
 
 @SELLER_VIEWS.route('/sell_items')
 @security.login_required(seller_required=True)
@@ -23,7 +25,7 @@ def cart():
 
 @SELLER_VIEWS.route('/upload_image/<seller_email>/<int:item_id>', methods=['POST'])
 @security.login_required(seller_required=True)
-def upload_image(seller_email, item_id):
+def upload_image(seller_email: str, item_id: int):
     filename: str = flask.request.files.get('image').filename
     extension: str = filename[filename.rfind('.'):]
     partial_path: str = f'amazonsharp/web/public/item_images/{seller_email}_{item_id}{extension}' 
@@ -32,19 +34,30 @@ def upload_image(seller_email, item_id):
     return '', http.client.NO_CONTENT
 
 
-@SELLER_VIEWS.route('/add_item/<seller_email>/<int:item_id>', methods=['POST'])
+@SELLER_VIEWS.route('/add_item/<seller_email>', methods=['POST'])
 @security.login_required(seller_required=True)
-def add_item(seller_email, item_id):
+def add_item(seller_email: str):
+    name: str = flask.request.form.get('name')
+    quantity: int = int(flask.request.form.get('quantity'))
+    price: float = float(flask.request.form.get('price'))
+    item_type: str = flask.request.form.get('itemType') 
+    manager.insert_item(seller_email, quantity, price, name, item_type)
     return '', http.client.NO_CONTENT
 
 
 @SELLER_VIEWS.route('/update_item/<seller_email>/<int:item_id>', methods=['POST'])
 @security.login_required(seller_required=True)
-def update_item(sell_emailer, item_id):
+def update_item(seller_email: str, item_id: int):
+    name: str = flask.request.form.get('name')
+    quantity: int = int(flask.request.form.get('quantity'))
+    price: float = float(flask.request.form.get('price'))
+    manager.update_item(seller_email, item_id, name, quantity, price)
     return '', http.client.NO_CONTENT
 
 
 @SELLER_VIEWS.route('/delete_item/<seller_email>/<int:item_id>', methods=['POST'])
 @security.login_required(seller_required=True)
-def delete_item(seller_email, item_id):
+def delete_item(seller_email: str, item_id: int):
+    manager.delete('ITEM', " seller_email = '{}' AND item_id = {} ".format(seller_email, item_id))
+    # foreign key on delete will take care of inventory's entry 
     return '', http.client.NO_CONTENT
