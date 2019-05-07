@@ -76,7 +76,7 @@ for i in range(5):
 item_sellers = []
 for i in range(5):
     seller = random.choice(sellers)
-    item_id = random.randint(1, 10)
+    item_id = i
     price = random.randint(1, 10)
     name = 'ITEM: ' + 'name' + str(i)
     item_type = 'ITEM_TYPE: ' + 'type' + str(i)
@@ -92,10 +92,11 @@ for i in range(5):
     orders.append(order_no)
 
 for i in range(len(orders)):
-    item = items[i]
     item_seller = item_sellers[i]
+    max_id = manager.retrieve_max_item_id_by_seller(item_seller)
+    item = random.randint(1, max_id)
     price = random.randint(1, 50)
     name = 'item_name: {}{}'.format('name', str(i))
     item_type = 'item_type: {}{}'.format('type', str(i))
     number_of_items_bought = 5
-    manager.insert('ITEMS_BOUGHT', item_seller, item, i + 1, price, name, item_type, number_of_items_bought)
+    manager.insert('ITEMS_BOUGHT', item_seller, item, i+1, price, name, item_type, number_of_items_bought)

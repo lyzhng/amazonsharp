@@ -2,13 +2,15 @@ import sqlite3
 from typing import List
 from datetime import datetime
 
+
+
 class DatabaseManager:
 
 
     def __init__(self, filename: str):  
         self.conn = sqlite3.connect(filename, check_same_thread=False) 
         self.conn.execute('PRAGMA foreign_keys = 1')
-        self.create_all_tables()
+        # self.create_all_tables()
         self.cur = self.conn.cursor()
 
 
@@ -18,18 +20,30 @@ class DatabaseManager:
 
 
     def create_all_tables(self):
-        # TODO
-        pass
+        self.create_table(CREATE_CONSTANTS.USER) 
+        self.create_table(CREATE_CONSTANTS.SELLER)
+        self.create_table(CREATE_CONSTANTS.CUSTOMER)
+        self.create_table(CREATE_CONSTANTS.EMPLOYEE)
+        self.create_table(CREATE_CONSTANTS.ITEM)
+        self.create_table(CREATE_CONSTANTS.INVENTORY) 
+        self.create_table(CREATE_CONSTANTS.SHOPPING_CART) 
+        self.create_table(CREATE_CONSTANTS.HAS_SHOPPING_CART)
+        self.create_table(CREATE_CONSTANTS.ORDERS)
+        self.create_table(CREATE_CONSTANTS.ORDER_PLACED) 
+        self.create_table(CREATE_CONSTANTS.ITEMS_BOUGHT) 
+        self.create_table(CREATE_CONSTANTS.ITEM_FREQUENCY)
+        self.create_table(CREATE_CONSTANTS.ITEMS_IN_SHOPPING_CART)
 
 
     def insert(self, table_name: str, *values) -> None:
         if table_name.upper() == 'ITEM':
             self.insert_item(*values)
-            self.insert_if_item(table_name, *values)
             return
         if table_name.upper() == 'ORDERS':
             self.insert_if_order(table_name, *values)
             return
+        if table_name.upper() == 'ITEMS_BOUGHT':
+            print(values)
         qmark = ("?," * len(values)).rstrip(",")
         with self.conn:
             self.insert_if_user(table_name, *values)
@@ -100,25 +114,39 @@ class DatabaseManager:
         order_number, customer_email, total_number_of_items, date_ordered = values
         self.cur.execute(
             """
-            INSERT INTO orders
+            INSERT INTO orders(order_number, customer_email, total_number_of_items, date_ordered)
             VALUES({}, '{}', {}, '{}')
             """
             .format(order_number, customer_email, total_number_of_items, date_ordered)
         )
         self.conn.commit()
 
-    def retrieve_total_number_of_items_from_order(self, order_number:int) -> int:
+    # def retrieve_total_number_of_items_from_order(self, order_number:int) -> int:
+    #     self.cur.execute(
+    #         """
+    #         SELECT *
+    #         FROM items_bought
+    #         WHERE order_number = {}
+    #         """
+    #         .format(order_number)
+    #     )
+    #     result = self.cur.fetchone()
+    #     return result
+
+
+    def retrieve_max_item_id_by_seller(self, seller_email: str):
         self.cur.execute(
             """
-            SELECT COUNT(*)
-            FROM items_bought
-            WHERE order_number = {}
+            SELECT item_id 
+            FROM inventory
+            WHERE seller_email = '{}'
+            ORDER BY item_id DESC
+            LIMIT 1
             """
-            .format(order_number)
+            .format(seller_email)
         )
-        result = self.cur.fetchone()
-        return result[0] if result is not None else 1
-
+        current_max = self.cur.fetchone()
+        return current_max[0] if current_max is not None else 0
 
     def retrieve_max_order_number(self) -> int:
         self.cur.execute(
@@ -186,30 +214,26 @@ class DatabaseManager:
 
 
     def insert_item(self, *values) -> None:
-        seller_email, item_id, quantity, price, name, item_type = values
+        seller_email, quantity, price, name, item_type = values
+        item_id = self.retrieve_max_item_id_by_seller(seller_email)
         self.cur.execute(
             """
             INSERT OR REPLACE INTO item(seller_email, item_id, quantity, price, name, type)
             VALUES('{}', {}, {}, {}, '{}', '{}')
             """
-            .format(seller_email, item_id, quantity, price, name, item_type)
+            .format(seller_email, item_id + 1, quantity, price, name, item_type)
         )
         self.conn.commit()
-
-
-    def insert_if_item(self, table_name: str, *values) -> None:
-        if table_name.upper() == 'ITEM':
-            seller_email, item_id, quantity, price, name, item_type = values
-            self.cur.execute(
-                """
-                INSERT INTO inventory(seller_email, item_id)
-                VALUES('{}', {})
-                ON CONFLICT(seller_email, item_id)
-                DO NOTHING
-                """
-                .format(seller_email, item_id)
-            )
-            self.conn.commit()
+        self.cur.execute(
+            """
+            INSERT INTO inventory(seller_email, item_id)
+            VALUES('{}', {})
+            ON CONFLICT(seller_email, item_id)
+            DO NOTHING
+            """
+            .format(seller_email, item_id + 1)
+        )
+        self.conn.commit()
 
 
     def update(self, table_name: str, modifications: str, filters: str) -> None:
@@ -246,6 +270,18 @@ class DatabaseManager:
 
     def count_rows(self, table_name: str, selected_attributes: str, filters: str = None) -> int:
         return len(self.retrieve_rows(table_name, selected_attributes, filters))
+
+
+    def retrieve_item_info(self, seller_email: str, item_id: int):
+        self.cur.execute(
+            """
+            SELECT price, name, type
+            FROM item
+            WHERE seller_email = '{}' AND item_id = {}
+            """
+            .format(seller_email, item_id)
+        )
+        return self.cur.fetchone()
 
 
     def retrieve_max_cart_id(self) -> int:
@@ -365,20 +401,20 @@ class DatabaseManager:
         
 
     # testing
-    def retrieve_items_from_shopping_cart(self, customer_email: str) -> List:
-        self.cur.execute(
-            """ 
-            SELECT C.item_id, C.name, C.number_of_items_bought
-            FROM has_a_shopping_cart A
-                LEFT OUTER JOIN shopping_cart B
-                    ON A.cart_id == B.cart_id
-                INNER JOIN items_in_shopping_cart C
-                    ON A.cart_id == C.cart_id
-            WHERE A.email == "{}"
-            """
-            .format(cusomer_email)
-        )
-        return self.cur.fetchall()
+    # def retrieve_items_from_shopping_cart(self, customer_email: str) -> List:
+    #     self.cur.execute(
+    #         """ 
+    #         SELECT C.item_id, C.name, C.number_of_items_bought
+    #         FROM has_a_shopping_cart A
+    #             LEFT OUTER JOIN shopping_cart B
+    #                 ON A.cart_id == B.cart_id
+    #             INNER JOIN items_in_shopping_cart C
+    #                 ON A.cart_id == C.cart_id
+    #         WHERE A.email == "{}"
+    #         """
+    #         .format(cusomer_email)
+    #     )
+    #     return self.cur.fetchall()
 
 
     def delete_table(self, table_name: str) -> None:
