@@ -35,6 +35,7 @@ class DatabaseManager:
         self._create_table(CREATE_CONSTANTS.SELLER)
         self._create_table(CREATE_CONSTANTS.CUSTOMER)
         self._create_table(CREATE_CONSTANTS.EMPLOYEE) 
+        self._create_table(CREATE_CONSTANTS.LOGIN_INFO)
         self._create_table(CREATE_CONSTANTS.ITEM)
         self._create_table(CREATE_CONSTANTS.INVENTORY)
         self._create_table(CREATE_CONSTANTS.SHOPPING_CART)
@@ -84,6 +85,16 @@ class DatabaseManager:
         self.conn.commit()
 
 
+    def insert_login_info(self, email: str, password: str, role: str):
+        self.cur.execute(
+            """
+            INSERT INTO login_info(email, password, role)
+            VALUES('{}', '{}', '{}')
+            """
+            .format(email, password, role)
+        )
+        self.conn.commit()
+
     """ Insert into items_bought when an order is placed """
     def insert_items_bought(self, seller_email: str, item_id: int, price: float, name: str, item_type: str, number_of_items_bought: int): 
         order_number = self._retrieve_max_order_number()
@@ -121,7 +132,7 @@ class DatabaseManager:
             .format(email, address, phone_number)
         )
         self.conn.commit()
-        self._insert_shopping_cart(email)
+        self._insert_empty_shopping_cart(email)
 
 
     """ Insert seller/user into respective tables """
@@ -138,14 +149,51 @@ class DatabaseManager:
 
 
     """ Link customer to (unique) shopping cart """
-    def _insert_shopping_cart(self, email: str) -> None:
+    def _insert_empty_shopping_cart(self, email: str) -> None:
             current_max = self._retrieve_max_cart_id()
             self._insert('SHOPPING_CART', current_max + 1, 0, 0)
             self._insert('HAS_SHOPPING_CART', email, current_max + 1)  
 
 
+    def update_shopping_cart(self, cart_id: int) -> None:
+        self.cur.execute(
+            """
+            SELECT 
+                SUM(items_in_shopping_cart.number_of_items_bought), 
+                ROUND(SUM(item.price))
+            FROM items_in_shopping_cart INNER JOIN item
+            ON
+                items_in_shopping_cart.seller_email = item.seller_email AND 
+                items_in_shopping_cart.item_id = item.item_id
+            WHERE cart_id = {}
+            """
+            .format(cart_id)
+        )
+        shopping_cart_values = self.cur.fetchone()
+        self.cur.execute(
+            """
+            UPDATE shopping_cart
+            SET total_number_of_items = {}, total_price = {}
+            WHERE cart_id = {}
+            """
+            .format(shopping_cart_values[0], shopping_cart_values[1], cart_id)
+        )
+        self.conn.commit()
+
+
+    def insert_items_in_shopping_cart(self, cart_id: int, seller_email: str, item_id: int, number_of_items_bought: int) -> None:
+        self.cur.execute(
+            """
+            INSERT INTO items_in_shopping_cart(cart_id, seller_email, item_id, number_of_items_bought)
+            VALUES({}, '{}', {}, {})
+            """
+            .format(cart_id, seller_email, item_id, number_of_items_bought)
+        )
+        self.conn.commit()
+
+
     """ Insert order into orders table as well as order_placed table """
-    def insert_order(self, order_number: int, customer_email: str, total_number_of_items: int) -> None:
+    def insert_order(self, customer_email: str, total_number_of_items: int) -> None:
         date_ordered = datetime.now().strftime("%B %d, %Y %I:%M%p")
         corresponding_cart_id = self._retrieve_customer_cart_id(customer_email)
         max_order_number = self._retrieve_max_order_number()
@@ -493,8 +541,13 @@ class DatabaseManager:
 
 
     """ General DELETE function for user """
-    def delete_user(self, filters: str) -> None:
-        self.delete('USER', '{}'.format(filters))
+    def delete_user(self, seller_email: str) -> None:
+        self.delete('USER', " seller_email = '{}' ".format(seller_email))
+
+
+    """ General DELETE function for item """
+    def delete_item(self, seller_email: str, item_id: int) -> None:
+        self.delete('ITEM', " seller_email = '{}' AND item_id = {} ".format(seller_email, item_id))
 
 
     """ General DROP TABLE function """
@@ -508,3 +561,10 @@ class DatabaseManager:
         self.cur.close()
         self.conn.close()
 
+
+    def get_cursor(self):
+        return self.cur
+
+
+    def get_conn(self):
+        return self.conn
