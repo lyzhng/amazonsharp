@@ -281,7 +281,7 @@ class DatabaseManager:
 
     def delete(self, table_name: str, filters: str) -> None:
         with LOCK:
-            self.cur.execute('DELETE {} WHERE {}'.format(table_name, filters))
+            self.cur.execute('DELETE FROM {} WHERE {}'.format(table_name, filters))
             self.conn.commit()
 
 

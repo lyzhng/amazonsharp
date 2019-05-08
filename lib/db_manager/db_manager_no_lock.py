@@ -488,7 +488,7 @@ class DatabaseManager:
 
     """ General DELETE function """
     def delete(self, table_name: str, filters: str) -> None:
-        self.cur.execute('DELETE {} WHERE {}'.format(table_name, filters))
+        self.cur.execute('DELETE FROM {} WHERE {}'.format(table_name, filters))
         self.conn.commit()
 
 
