@@ -40,7 +40,7 @@ def items_by_seller(seller):
 
 @API_VIEWS.route('/get_items/<seller>/<int:item>')
 def item_by_seller(seller, item):
-    particular_item = __DATABASE.retrieve_item_by_seller(seller, item)
+    particular_item = __DATABASE.retrieve_item_info(seller, item)
     return flask.jsonify(particular_item)
 
 

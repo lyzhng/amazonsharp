@@ -22,10 +22,12 @@ class DatabaseManager:
         self.create_all_tables()
         self.conn.commit()
 
+
     """ General CREATE TABLE function """
     def _create_table(self, create_table_statement: str) -> None:
         self.cur.execute(create_table_statement)
         self.conn.commit()
+
 
     """ Create all tables """
     def create_all_tables(self):
@@ -43,6 +45,34 @@ class DatabaseManager:
         self._create_table(CREATE_CONSTANTS.ITEMS_BOUGHT) 
         self._create_table(CREATE_CONSTANTS.ITEM_FREQUENCY)
 
+
+    def retrieve_number_of_items_from_cart(self, cart_id: int) -> int:
+        self.cur.execute(
+            """
+            SELECT SUM(number_of_items_bought)
+            FROM items_in_shopping_cart
+            WHERE cart_id = {}
+            """
+            .format(cart_id)
+        )
+        number_of_items_from_cart = self.cur.fetchone()
+        return number_of_items_from_cart[0] if number_of_items_from_cart is not None else 0
+
+
+    def retrieve_total_price_from_cart(self, cart_id: int) -> float:
+        self.cur.execute(
+            """
+            SELECT ROUND(SUM(price))
+            FROM items_in_shopping_cart INNER JOIN item
+            ON items_in_shopping_cart.seller_email = item.seller_email AND items_in_shopping_cart.item_id = item.item_id
+            WHERE items_in_shopping_cart.cart_id = {}
+            """
+            .format(cart_id)
+        )
+        total_price = self.cur.fetchone()
+        return total_price[0] if total_price is not None else 0
+
+
     """
     [WARNING]
     General INSERT function. If there is a more specific function that suits your needs, use that one.
@@ -52,6 +82,7 @@ class DatabaseManager:
         qmark = ("?," * len(values)).rstrip(",")
         self.cur.execute('INSERT INTO {} VALUES({})'.format(table_name, qmark), values)
         self.conn.commit()
+
 
     """ Insert into items_bought when an order is placed """
     def insert_items_bought(self, seller_email: str, item_id: int, price: float, name: str, item_type: str, number_of_items_bought: int): 
@@ -66,6 +97,7 @@ class DatabaseManager:
         self.conn.commit()
         self._handle_frequency_and_quantity(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
 
+
     """ General insert user function """
     def _insert_user(self, first: str, last: str, email: str):
         self.cur.execute(
@@ -76,6 +108,7 @@ class DatabaseManager:
             .format(first, last, email)
         )
         self.conn.commit()        
+
 
     """ Insert customer/user into respective tables """
     def insert_customer(self, email: str, address: str, phone_number: str):
@@ -90,6 +123,7 @@ class DatabaseManager:
         self.conn.commit()
         self._insert_shopping_cart(email)
 
+
     """ Insert seller/user into respective tables """
     def insert_seller(self, email: str, address: str, phone_number: str):
         self._insert_user('', '', email)
@@ -101,6 +135,7 @@ class DatabaseManager:
             .format(email, address, phone_number)
         )
         self.conn.commit()
+
 
     """ Link customer to (unique) shopping cart """
     def _insert_shopping_cart(self, email: str) -> None:
@@ -372,11 +407,15 @@ class DatabaseManager:
         return cart_id_entry[0] if cart_id_entry is not None else 0
 
 
-    """ [PRIVATE] Returns the total number of items from an order """
+    """
+    [PRIVATE]
+    Returns the total number of items from an order
+    Use this for total_number_of_items in `orders`
+    """
     def _retrieve_total_number_of_items_from_order(self, order_number:int) -> int:
         self.cur.execute(
             """
-            SELECT COUNT(*)
+            SELECT SUM(number_of_items_bought)
             FROM items_bought
             WHERE order_number = {}
             """
@@ -458,7 +497,7 @@ class DatabaseManager:
         self.delete('USER', '{}'.format(filters))
 
 
-    """ General DROP function """
+    """ General DROP TABLE function """
     def delete_table(self, table_name: str) -> None:
         self.cur.execute('DROP TABLE {}'.format(table_name))
         self.cur.commit()
