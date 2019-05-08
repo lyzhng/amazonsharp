@@ -16,10 +16,7 @@ from lib.db_manager import db_manager_no_lock
 from lib.db_manager import db_create_constants as CREATE_CONSTANTS
 
 manager = db_manager_no_lock.DatabaseManager(config.get_value(config.DB_NAME))
-manager.create_table(CREATE_CONSTANTS.USER)
-manager.create_table(CREATE_CONSTANTS.SELLER)
-manager.create_table(CREATE_CONSTANTS.ITEM)
-manager.create_table(CREATE_CONSTANTS.INVENTORY)
+manager.create_all_tables()
 
 try:
     while True:
@@ -30,7 +27,7 @@ try:
             address = input('Address: ')
             phone_number = input('Phone number: ')
             print('Creating seller...')
-            manager.insert('SELLER', seller_email, address, phone_number)
+            manager.insert_seller(seller_email, address, phone_number)
             print('There is now a seller!')
 
         quantity = input('Quantity: ')
