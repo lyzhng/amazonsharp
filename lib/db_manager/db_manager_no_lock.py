@@ -46,7 +46,7 @@ class DatabaseManager:
         self._create_table(CREATE_CONSTANTS.ITEM_FREQUENCY)
 
 
-    def retrieve_number_of_items_from_cart(self, cart_id: int) -> int:
+    def retrieve_total_number_of_items_from_cart(self, cart_id: int) -> int:
         self.cur.execute(
             """
             SELECT SUM(number_of_items_bought)

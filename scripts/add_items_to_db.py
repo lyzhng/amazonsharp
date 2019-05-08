@@ -47,6 +47,7 @@ for i in range(10):
     manager.insert_seller(email, address, phone_number)
     sellers.append(email)
 
+# [NOTE] Employees have not been worked on yet...
 # for i in range(5):
 #     first_name = names.get_first_name()
 #     last_name = names.get_last_name()
@@ -70,7 +71,7 @@ for i in range(10):
 
 for i in range(10):
     order_no = random.randint(1, 1e5)
-    total_number_of_items = random.randint(1, len(items) - 1)
+    total_number_of_items = random.randint(1, 10)
     manager.insert_order(order_no, customers[i], total_number_of_items)
     orders.append(order_no)
 
