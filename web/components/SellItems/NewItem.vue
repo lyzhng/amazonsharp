@@ -9,11 +9,14 @@
                 <v-layout row>
                     <v-text-field label="Name" v-model="name" required autofocus></v-text-field>
                     <v-spacer></v-spacer>
-                    <v-text-field label="Price" v-model="price" required></v-text-field>
+                    <v-text-field type="number" step="0.01" label="Price" v-model="price" prefix="$" required></v-text-field>
                 </v-layout row>
                 <v-layout row>
                     <v-text-field type="number" label="Quantity" v-model="quantity" required></v-text-field>
                 </v-layout>
+				<v-layout row v-if="this.action == 'New'">
+					<v-text-field label="Category" v-model="itemType" required></v-text-field>
+				</v-layout>
 				<v-layout row>
 					<upload-btn class="ma-0 pa-0" title="Upload Image" accept="image/*" :fileChangedCallback="fileUpload"></upload-btn>
 				</v-layout>
@@ -22,7 +25,7 @@
     </v-card-text>
     <v-card-action>
         <v-layout row justify-end>
-            <v-btn class="mb-2" color="blue darken-1" flat @click="sendData(); $emit('update_vars', {'name': name, 'price': price, 'quantity': quantity, 'dialog': false});">Save</v-btn>
+            <v-btn class="mb-2" color="blue darken-1" flat @click="newItemId = sendData(); $emit('update_vars', {'name': name, 'price': price, 'quantity': quantity, 'dialog': false}); $emit('add_item', {'itemId': newItemId, 'sellerEmail': sellerEmail, 'dialog': false});">Save</v-btn>
             <v-btn class="mb-2" color="blue darken-1" flat @click="$emit('update_vars', {'dialog': false})">Quit</v-btn> 
         </v-layout>
     </v-card-action>
@@ -72,6 +75,9 @@ export default {
 		name: this.name,
 		price: this.price,
 		quantity: this.quantity,
+		itemType: this.itemType,
+
+		newItemId: null,
     }),
     methods: {
 		removeFileTypeNotMatchDialog() {
@@ -102,17 +108,39 @@ export default {
 			xhr.open("POST", uploadURL, true);
 			xhr.send(formData);
 		},
-		sendData() {
+		async sendData() {
 			var formData = new FormData();
 			formData.append('name', this.name);
 			formData.append('price', this.price);
 			formData.append('quantity', this.quantity);
 
-			var uploadURL = `/add_item/${this.sellerEmail}/${this.itemId}`;
+			var uploadURL;
+			if (this.action == 'New') {
+				uploadURL = `/add_item/${this.sellerEmail}`;
+				formData.append('itemType', this.itemType);
+			}
+			else if (this.action == 'Edit')
+				uploadURL = `/update_item/${this.sellerEmail}/${this.itemId}`;
 
-			var xhr = new XMLHttpRequest();
-			xhr.open("POST", uploadURL, true);
-			xhr.send(formData);
+			const response = await fetch(uploadURL, {
+				method: "POST",
+				mode: "cors",
+				credentials: "include",
+				body: formData,
+			});
+			
+			return await response.json();
+			// var xhr = new XMLHttpRequest();
+			// xhr.open("POST", uploadURL, true);
+			// xhr.send(formData);
+			// if (xhr.readyState === 4) {
+			// 	if (xhr.status === 200) {
+			// 		return JSON.parse(await xhr.responseText);
+			// 	} else {
+			// 		alert('Communication with the server failed.  Please try again later!');
+			// 		return undefined;
+			// 	}
+			// }
 		},
     },
     props: ['action', 'name', 'price', 'imagePath', 'quantity', 'sellerEmail', 'itemId'],

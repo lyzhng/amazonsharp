@@ -8,7 +8,7 @@
 			<v-card-title primary-title>
 				<div>
 					<div class="headline">{{ name }}</div>
-					<div>{{ price }}</div>
+					<div>${{ price }}</div>
                     <div>Quantity: {{ quantity }}</div>
 				</div>
 			</v-card-title>
@@ -22,10 +22,10 @@
                     <new-item-component action="Edit" :name="this.name" :price="this.price"
                                         :image-path="this.imagePath" :quantity="this.quantity"
                                         :seller-email="this.sellerEmail" :item-id="this.itemId"
-										@update_vars="update_vars">
+										@update_vars="updateVars">
                     </new-item-component>
                 </v-dialog>
-				<v-icon class="ml-3" color="red" v-on="on">delete</v-icon>
+				<v-icon class="ml-3" color="red" @click="$emit('delete_item', itemId)">delete</v-icon>
 			</v-layout>
 		</v-flex>
 	</v-layout>
@@ -44,7 +44,9 @@ export default {
         drawer: false,
     }),
     methods: {
-		update_vars(event) {
+		updateVars(event) {
+			console.log(event);
+
 			if (event['name'] !== undefined)
 				this.name = event['name'];
 			if (event['price'] !== undefined)

@@ -13,7 +13,8 @@
                         </v-list-tile-content>
                     </v-list-tile>
                 </template>
-                <new-item-component action="New" v-model="dialog"></new-item-component>
+                <new-item-component action="New" :seller-email="this.username"
+					@add_item="addItem"></new-item-component>
             </v-dialog>
         </v-list>
     </v-navigation-drawer>
@@ -44,7 +45,7 @@
 					<v-divider></v-divider>
 	  				<v-flex v-for="(item, i) in items" :key="i">
 	  					<sell-items-preview-component :seller-email="item[0]" :item-id="item[1]" :name="item[2]"
-						:price="item[3]" :image-path="item[0]/item[1]" :quantity="item[4]">
+						:price="item[3]" :image-path="item[0]/item[1]" :quantity="item[4]" @delete_item="deleteItem">
 						</sell-items-preview-component>
 	  				</v-flex>
 	  			</v-layout>
@@ -83,9 +84,33 @@ export default {
         }
 	},
     methods: {
-		postNewItemForSale() {
-			console.log("Seller wants to post new item for sale!");
+		addItem(event) {
+			if (event['dialog'] !== undefined)
+				this.dialog = event['dialog'];
+			if (event['itemId'] !== undefined) {
+				var self = this;
+				event['itemId'].then(async function(itemId) {
+					const response = await fetch(`/get_items/${self.username}/${itemId}`);
+					var itemAttributes = await response.json();
+					self.items.push([self.username, itemId, itemAttributes[0], itemAttributes[1], itemAttributes[2]]);
+				});
+			}
 		},
+
+		deleteItem(itemId) {
+			if (itemId !== undefined) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", `/delete_item/${this.username}/${itemId}`, true);
+				xhr.send();
+
+				for(var index in this.items) {
+					if (this.items[index] === itemId) {
+						break;
+					}
+				}
+				this.items.splice(index, 1);
+			}
+		}
     },
     props: ['loggedInState', 'username'],
 }
