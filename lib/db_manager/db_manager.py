@@ -305,7 +305,7 @@ class DatabaseManager:
         with LOCK:
             self.cur.execute(
                 """
-                SELECT price, name, type
+                SELECT name, price, type
                 FROM item
                 WHERE seller_email = '{}' AND item_id = {}
                 """
