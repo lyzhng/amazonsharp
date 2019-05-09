@@ -9,7 +9,7 @@
 			{{ formattedMessage() }}
 		</v-alert>
 	</div>
-	<v-form method="post">
+	<v-form action="/login" method="post">
     	<v-text-field
     		v-model="username"
 	    	prepend-icon="account_circle"

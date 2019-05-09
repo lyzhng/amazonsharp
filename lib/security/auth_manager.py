@@ -15,7 +15,6 @@ from lib.security import security_utils
 import passlib.hash
 
 __AUTH_MANAGER = db_manager.DatabaseManager(config.get_value(config.DB_NAME))
-__AUTH_MANAGER.create_table(db_create_constants.LOGIN_INFO)
 
 
 def is_registered(username: str) -> bool:
@@ -46,12 +45,17 @@ def is_developer(username: str) -> bool:
     return __AUTH_MANAGER.has_rows('login_info', '*', cond)
 
 
-def register(username: str, password: str, role: str) -> Tuple[bool, str]:
+def register(username: str, password: str, role: str, address: str,
+             phone_number: str) -> Tuple[bool, str]:
     "Add the user to the database."
     if is_registered(username):
         return False, 'Error: Username already exists!'
     hashed_password: str = security_utils.secure_hash_password(password)
-    __AUTH_MANAGER.insert('login_info', username, hashed_password, role)
+    if role == 'CUSTOMER':
+        __AUTH_MANAGER.insert_customer(username, address, phone_number)
+    elif role == 'SELLER':
+        __AUTH_MANAGER.insert_seller(username, address, phone_number)
+    __AUTH_MANAGER.insert_login_info(username, hashed_password, role)
     return True, 'Successfully registered!'
 
 
