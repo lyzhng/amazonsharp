@@ -507,8 +507,8 @@ class DatabaseManager:
         return result[0] if result is not None else 0
 
 
-    """ [PRIVATE] Returns the current max item id by a seller """
-    def _retrieve_max_item_id_by_seller(self, seller_email: str) -> int:
+    """ Returns the current max item id by a seller """
+    def retrieve_max_item_id_by_seller(self, seller_email: str) -> int:
         self.cur.execute(
             """
             SELECT item_id 

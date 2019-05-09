@@ -73,3 +73,9 @@ def delete_item(seller_email: str, item_id: int):
     except(TypeError, AttributeError):
         return '', http.HTTPStatus.BAD_REQUEST
     return '', http.client.NO_CONTENT
+
+
+@SELLER_VIEWS.route('/get_item_id/<seller_email>', methods=['POST'])
+@security.login_required(seller_required=True)
+def max_item_id(seller_email: str):
+    return flask.jsonify(manager.retrieve_max_item_id_by_seller(seller_email))
