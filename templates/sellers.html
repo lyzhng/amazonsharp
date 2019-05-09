@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}
+	Amazon# - Sellers
+{% endblock %}
+
+{% block head_extras %}
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+{% endblock %}
+
+{% block content %}
+	<app data-logged-in-state="{{ is_logged_in }}" data-is-customer="{{ is_customer }}" data-is-seller="{{ is_seller }}"></app>
+	<script src="/public/components/sellers.js"></script>
+{% endblock %}
+

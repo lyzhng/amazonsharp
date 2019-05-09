@@ -7,6 +7,7 @@ if __ROOT_PATH not in sys.path:
     sys.path.append(__ROOT_PATH)
 
 import flask
+import os
 from lib.config import config
 from lib.db_manager import db_manager
 
@@ -44,3 +45,11 @@ def item_by_seller(seller, item):
     return flask.jsonify(particular_item)
 
 
+@API_VIEWS.route('/get_image/<seller>/<item_id>')
+def image_by_seller(seller, item_id):
+    image_path: str = os.path.join(__ROOT_PATH, 'amazonsharp/web/public/item_images')
+    images = [image for image in os.listdir(image_path)
+              if os.path.basename(image).startswith(f'{seller}_{item_id}.')]
+    if len(images) > 0:
+        image = images[0]
+        return flask.send_from_directory(image_path, os.path.basename(image))

@@ -21,6 +21,8 @@ module.exports = {
 		cart: 'cart.js',
 		item: 'item.js',
 		sellitems: 'sellitems.js',
+		sellers: 'sellers.js',
+		selleritems: 'selleritems.js',
     },
     output: {
         path: path.join(__dirname, 'public', 'components'),

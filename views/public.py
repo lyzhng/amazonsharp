@@ -24,3 +24,19 @@ def items():
     username: str = flask.session.get('username') or ''
     return flask.render_template('all_items.html', is_logged_in=security.is_logged_in(),
                                  is_customer=auth_manager.is_customer(username))
+
+
+@PUBLIC_VIEWS.route('/sellers')
+def sellers():
+    username: str = flask.session.get('username') or ''
+    return flask.render_template('sellers.html', is_logged_in=security.is_logged_in(),
+                                 is_customer=auth_manager.is_customer(username),
+                                 is_seller=auth_manager.is_seller(username))
+
+
+@PUBLIC_VIEWS.route('/seller/<seller_email>')
+def seller(seller_email: str):
+    username: str = flask.session.get('username') or ''
+    return flask.render_template('seller_items.html', is_logged_in=security.is_logged_in(),
+                                 username=username,
+                                 is_customer=auth_manager.is_customer(username))
