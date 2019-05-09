@@ -289,8 +289,7 @@ class DatabaseManager:
 
     
     """ Returns the unique id of the item entry that got inserted """
-    def insert_item(self, seller_email: str, quantity: int, price: float, name: str, item_type: str) -> int:
-        item_id = self._retrieve_max_item_id_by_seller(seller_email)
+    def insert_item(self, seller_email: str, quantity: int, price: float, name: str, item_type: str) -> None:
         self.cur.execute(
             """
             INSERT OR REPLACE INTO item(seller_email, item_id, quantity, price, name, type)
@@ -309,7 +308,6 @@ class DatabaseManager:
             .format(seller_email, item_id + 1)
         )
         self.conn.commit()
-        return item_id + 1
 
     """
     General UPDATE function. If updating an item, use update_item.

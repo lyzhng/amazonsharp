@@ -45,10 +45,9 @@ def add_item(seller_email: str):
         quantity: int = int(flask.request.form.get('quantity'))
         price: float = float(flask.request.form.get('price'))
         item_type: str = flask.request.form.get('itemType') 
-        itemId: int = manager.insert_item(seller_email, quantity, price, name, item_type)
+        manager.insert_item(seller_email, quantity, price, name, item_type)
     except(TypeError, AttributeError):
         return '', http.HTTPStatus.BAD_REQUEST
-    return flask.jsonify(itemId)
 
 
 @SELLER_VIEWS.route('/update_item/<seller_email>/<int:item_id>', methods=['POST'])
