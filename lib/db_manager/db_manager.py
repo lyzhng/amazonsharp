@@ -372,7 +372,7 @@ class DatabaseManager:
     def retrieve_all_items(self) -> List:
         with LOCK:
             try:
-                return self.retrieve_rows('ITEM', 'name', 'price')
+                return self.retrieve_rows('ITEM', 'seller_email, item_id, name, quantity, price')
             except sqlite3.OperationalError:
                 return []
 

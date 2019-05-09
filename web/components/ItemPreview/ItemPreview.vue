@@ -1,10 +1,11 @@
 <template>
 <v-card dark>
-	<v-img :src="this.imagePath" contain></v-img>
+	<v-img :src="this.imagePath" height="400px" contain></v-img>
 	<v-card-title primary-title>
 		<div>
 			<h3 class="headline mb-0">{{ this.name }}</h3>
-			<div>{{ this.price }}</div>
+			<div v-if="seller != undefined">by {{ this.seller }}</div>
+			<div>${{ this.price }}</div>
             <div v-if="popularity >= 0">Popularity: {{ this.popularity }}</div>
 		</div>
 	</v-card-title>
@@ -21,6 +22,6 @@ export default {
 	methods: {
 
 	},
-	props: ['name', 'price', 'popularity', 'imagePath'],
+	props: ['name', 'seller', 'price', 'popularity', 'imagePath'],
 }
 </script>

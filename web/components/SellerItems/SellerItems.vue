@@ -148,7 +148,6 @@ export default {
             return
         }
 
-		console.log(this.items);
 		if (this.items === null) {
             this.items = [];
         }

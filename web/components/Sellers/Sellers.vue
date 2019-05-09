@@ -150,7 +150,6 @@ export default {
             return
         }
 
-		console.log(this.sellers);
 		if (this.sellers === null) {
             this.sellers = [];
         }
