@@ -84,29 +84,59 @@ class DatabaseManager:
         self.cur.execute('INSERT INTO {} VALUES({})'.format(table_name, qmark), values)
         self.conn.commit()
 
-
+    """ Insert login info entry (email, password, role) """
     def insert_login_info(self, email: str, password: str, role: str):
         self.cur.execute(
             """
             INSERT INTO login_info(email, password, role)
             VALUES('{}', '{}', '{}')
             """
-            .format(email, password, role)
+            .format(email, password, role.upper())
         )
         self.conn.commit()
 
     """ Insert into items_bought when an order is placed """
-    def insert_items_bought(self, seller_email: str, item_id: int, price: float, name: str, item_type: str, number_of_items_bought: int): 
-        order_number = self._retrieve_max_order_number()
+    def insert_items_bought(self, customer_email: str, order_number: int):
+        items_in_shopping_cart = self.retrieve_items_from_shopping_cart(customer_email)
+        for entry in items_in_shopping_cart:
+            seller_email = entry[0]
+            item_id = entry[1]
+            number_of_items_bought = entry[2]
+            item_info = self.retrieve_item_info(seller_email, item_id)
+            name = item_info[0]
+            price = item_info[1]
+            item_type = item_info[3]
+            self.cur.execute(
+                """
+                INSERT INTO items_bought(seller_email, item_id, order_number, price, name, type, number_of_items_bought)
+                VALUES('{}', {}, {}, {}, '{}', '{}', {})
+                """
+                .format(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
+            )
+            self.conn.commit()
+        self._handle_frequency_and_quantity(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
+        cart_id = self._retrieve_customer_cart_id(customer_email)
+        self._clear_shopping_cart(cart_id)
+
+
+    def _clear_shopping_cart(self, cart_id: int) -> None:
         self.cur.execute(
             """
-            INSERT INTO items_bought(seller_email, item_id, order_number, price, name, type, number_of_items_bought)
-            VALUES('{}', {}, {}, {}, '{}', '{}', {})
+            UPDATE shopping_cart
+            SET total_number_of_items = 0, total_price = 0
+            WHERE cart_id = {}
             """
-            .format(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
+            .format(cart_id)
         )
         self.conn.commit()
-        self._handle_frequency_and_quantity(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
+        self.cur.execute(
+            """
+            DELETE FROM items_in_shopping_cart
+            WHERE cart_id = {}
+            """
+            .format(cart_id)
+        )
+        self.conn.commit()
 
 
     """ General insert user function """
@@ -160,7 +190,7 @@ class DatabaseManager:
             """
             SELECT 
                 SUM(items_in_shopping_cart.number_of_items_bought), 
-                ROUND(SUM(item.price))
+                ROUND(SUM(item.price * items_in_shopping_cart.number_of_items_bought))
             FROM items_in_shopping_cart INNER JOIN item
             ON
                 items_in_shopping_cart.seller_email = item.seller_email AND 
@@ -181,7 +211,8 @@ class DatabaseManager:
         self.conn.commit()
 
 
-    def insert_items_in_shopping_cart(self, cart_id: int, seller_email: str, item_id: int, number_of_items_bought: int) -> None:
+    def insert_items_in_shopping_cart(self, customer_email: int, seller_email: str, item_id: int, number_of_items_bought: int) -> None:
+        cart_id = self._retrieve_customer_cart_id(customer_email)
         self.cur.execute(
             """
             INSERT INTO items_in_shopping_cart(cart_id, seller_email, item_id, number_of_items_bought)
@@ -190,13 +221,15 @@ class DatabaseManager:
             .format(cart_id, seller_email, item_id, number_of_items_bought)
         )
         self.conn.commit()
+        self.update_shopping_cart(cart_id)
 
 
     """ Insert order into orders table as well as order_placed table """
-    def insert_order(self, customer_email: str, total_number_of_items: int) -> None:
+    def insert_order(self, customer_email: str) -> None:
         date_ordered = datetime.now().strftime("%B %d, %Y %I:%M%p")
         corresponding_cart_id = self._retrieve_customer_cart_id(customer_email)
         max_order_number = self._retrieve_max_order_number()
+        total_number_of_items = self.retrieve_total_number_of_items_from_cart(corresponding_cart_id)
         self.cur.execute(
             """
             INSERT INTO orders(order_number, customer_email, total_number_of_items, date_ordered)
@@ -207,6 +240,7 @@ class DatabaseManager:
         self.conn.commit()
         self._insert('ORDER_PLACED', customer_email, corresponding_cart_id, max_order_number + 1)
         self.conn.commit()
+        self.insert_items_bought(customer_email, max_order_number + 1)
 
 
     """ Increment item's frequency and decrement item's quantity by number_of_items_bought """
@@ -412,7 +446,7 @@ class DatabaseManager:
     def retrieve_item_info(self, seller_email: str, item_id: int) -> List:
         self.cur.execute(
             """
-            SELECT item.name, item.price, item.quantity
+            SELECT item.name, item.price, item.quantity, item.type
             FROM item
             WHERE item.seller_email = '{}' AND item.item_id = {}
             """
@@ -517,21 +551,21 @@ class DatabaseManager:
         return max_cart_id[0] if max_cart_id is not None else 0
 
 
-    # [TESTING]
-    # def retrieve_items_from_shopping_cart(self, customer_email: str) -> List:
-    #     self.cur.execute(
-    #         """ 
-    #         SELECT C.item_id, C.name, C.number_of_items_bought
-    #         FROM has_a_shopping_cart A
-    #             LEFT OUTER JOIN shopping_cart B
-    #                 ON A.cart_id == B.cart_id
-    #             INNER JOIN items_in_shopping_cart C
-    #                 ON A.cart_id == C.cart_id
-    #         WHERE A.email == "{}"
-    #         """
-    #         .format(cusomer_email)
-    #     )
-    #     return self.cur.fetchall()
+    def retrieve_items_from_shopping_cart(self, customer_email: str) -> List:
+        self.cur.execute(
+            """ 
+            SELECT items_in_shopping_cart.seller_email, items_in_shopping_cart.item_id, items_in_shopping_cart.number_of_items_bought
+            FROM has_shopping_cart
+                INNER JOIN shopping_cart
+                    ON has_shopping_cart.cart_id = shopping_cart.cart_id
+                INNER JOIN items_in_shopping_cart
+                    ON has_shopping_cart.cart_id = items_in_shopping_cart.cart_id
+            WHERE has_shopping_cart.customer_email = '{}'
+            """
+            .format(customer_email)
+        )
+        items_from_shopping_cart = self.cur.fetchall()
+        return items_from_shopping_cart if items_from_shopping_cart is not None else []
 
 
     """ General DELETE function """

@@ -70,9 +70,6 @@ for i in range(10):
     item_sellers.append(seller)
 
 for i in range(10):
-    order_no = random.randint(1, 1e5)
     total_number_of_items = random.randint(1, 10)
-    manager.insert_order(order_no, customers[i], total_number_of_items)
+    manager.insert_order(customers[i], total_number_of_items)
     orders.append(order_no)
-
-# manager.insert_items_bought('Sharon.Cruz@email.com', 2, 50, 'chair', 'office', 5)

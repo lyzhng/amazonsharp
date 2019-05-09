@@ -68,7 +68,7 @@ def update_item(seller_email: str, item_id: int):
 @security.login_required(seller_required=True)
 def delete_item(seller_email: str, item_id: int):
     try:
-        manager.delete('ITEM', " seller_email = '{}' AND item_id = {} ".format(seller_email, item_id))
+        manager.delete_item(seller_email, item_id)
         # Foreign key on delete will take care of inventory's entry 
     except(TypeError, AttributeError):
         return '', http.HTTPStatus.BAD_REQUEST

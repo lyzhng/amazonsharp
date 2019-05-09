@@ -99,7 +99,8 @@ ITEMS_IN_SHOPPING_CART = """
         cart_id INTEGER,
         seller_email TINYTEXT,
         item_id INTEGER,
-        number_of_items_bought INTEGER NOT NULL,
+        number_of_items_bought INTEGER NOT NULL
+            CHECK(number_of_items_bought >= 1),
         PRIMARY KEY(cart_id, seller_email, item_id),
         FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
             ON DELETE CASCADE
@@ -136,8 +137,11 @@ HAS_SHOPPING_CART = """
     CREATE TABLE IF NOT EXISTS has_shopping_cart(
         customer_email TINYTEXT NOT NULL,
         cart_id INTEGER PRIMARY KEY,
-        FOREIGN KEY(customer_email) REFERENCES customer(email),
+        FOREIGN KEY(customer_email) REFERENCES customer(email)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
         FOREIGN KEY(cart_id) REFERENCES shopping_cart(cart_id)
+            ON DELETE CASCADE
     )
 """
 
