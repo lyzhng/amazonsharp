@@ -48,6 +48,7 @@ def add_item(seller_email: str):
         manager.insert_item(seller_email, quantity, price, name, item_type)
     except(TypeError, AttributeError):
         return '', http.HTTPStatus.BAD_REQUEST
+    return '', http.HTTPStatus.NO_CONTENT
 
 
 @SELLER_VIEWS.route('/update_item/<seller_email>/<int:item_id>', methods=['POST'])
@@ -77,4 +78,4 @@ def delete_item(seller_email: str, item_id: int):
 @SELLER_VIEWS.route('/get_item_id/<seller_email>', methods=['POST'])
 @security.login_required(seller_required=True)
 def max_item_id(seller_email: str):
-    return flask.jsonify(manager.retrieve_max_item_id_by_seller(seller_email))
+    return flask.jsonify(manager.retrieve_max_item_id_by_seller(seller_email) + 1)

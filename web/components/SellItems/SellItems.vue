@@ -45,7 +45,7 @@
 					<v-divider></v-divider>
 	  				<v-flex v-for="(item, i) in items" :key="i">
 	  					<sell-items-preview-component :seller-email="item[0]" :item-id="item[1]" :name="item[2]"
-						:price="item[3]" :image-path="item[0]/item[1]" :quantity="item[4]" @delete_item="deleteItem">
+						:price="item[3]" :image-path="'/get_image/' + item[0] + '/' + item[1]" :quantity="item[4]" @delete_item="deleteItem">
 						</sell-items-preview-component>
 	  				</v-flex>
 	  			</v-layout>
@@ -84,17 +84,22 @@ export default {
         }
 	},
     methods: {
-		addItem(event) {
+		async addItem(event) {
 			if (event['dialog'] !== undefined)
 				this.dialog = event['dialog'];
-			if (event['itemId'] !== undefined) {
-				var self = this;
-				event['itemId'].then(async function(itemId) {
-					const response = await fetch(`/get_items/${self.username}/${itemId}`);
-					var itemAttributes = await response.json();
+
+			var itemId = event['itemId'];
+			var self = this;
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', `/get_items/${this.username}/${itemId}`, true);
+			xhr.send();
+			xhr.onreadystatechange = function() {
+				if (xhr.readyState == 4 && xhr.status >= 200 && xhr.status < 300) {
+					var itemAttributes = JSON.parse(xhr.responseText);
 					self.items.push([self.username, itemId, itemAttributes[0], itemAttributes[1], itemAttributes[2]]);
-				});
-			}
+				}
+			};
 		},
 
 		deleteItem(itemId) {

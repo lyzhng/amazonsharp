@@ -2,7 +2,7 @@
 <v-card light height="200px">
 	<v-layout row align-center fill-height>
 		<v-flex xs4 md3>
-			<v-img class="ma-4" src="/public/assets/temp.jpg" height="156px"></v-img>
+			<v-img class="ma-4" :src="imagePath" height="156px"></v-img>
 		</v-flex>
 		<v-flex xs5 md5>
 			<v-card-title primary-title>
@@ -45,8 +45,6 @@ export default {
     }),
     methods: {
 		updateVars(event) {
-			console.log(event);
-
 			if (event['name'] !== undefined)
 				this.name = event['name'];
 			if (event['price'] !== undefined)

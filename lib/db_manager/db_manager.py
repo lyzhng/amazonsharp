@@ -260,14 +260,14 @@ class DatabaseManager:
 
    
     """ Returns the unique id of the item entry that got inserted """
-    def insert_item(self, seller_email: str, quantity: int, price: float, name: str, item_type: str) -> int:
-        item_id = self._retrieve_max_item_id_by_seller(seller_email)
+    def insert_item(self, seller_email: str, quantity: int, price: float, name: str, item_type: str) -> None:
+        item_id = self.retrieve_max_item_id_by_seller(seller_email) + 1
         self.cur.execute(
             """
             INSERT OR REPLACE INTO item(seller_email, item_id, quantity, price, name, type)
             VALUES('{}', {}, {}, {}, '{}', '{}')
             """
-            .format(seller_email, item_id + 1, quantity, price, name, item_type)
+            .format(seller_email, item_id, quantity, price, name, item_type)
         )
         self.conn.commit()
         self.cur.execute(
@@ -277,10 +277,10 @@ class DatabaseManager:
             ON CONFLICT(seller_email, item_id)
             DO NOTHING
             """
-            .format(seller_email, item_id + 1)
+            .format(seller_email, item_id)
         )
         self.conn.commit()
-        return item_id + 1
+        
 
     """
     General UPDATE function. If updating an item, use update_item.
@@ -489,8 +489,8 @@ class DatabaseManager:
         return result[0] if result is not None else 0
 
 
-    """ [PRIVATE] Returns the current max item id by a seller """
-    def _retrieve_max_item_id_by_seller(self, seller_email: str) -> int:
+    """ Returns the current max item id by a seller """
+    def retrieve_max_item_id_by_seller(self, seller_email: str) -> int:
         self.cur.execute(
             """
             SELECT item_id 
