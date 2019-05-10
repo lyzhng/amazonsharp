@@ -57,7 +57,7 @@ class DatabaseManager:
             .format(cart_id)
         )
         number_of_items_from_cart = self.cur.fetchone()
-        return number_of_items_from_cart[0] if number_of_items_from_cart is not None else 0
+        return number_of_items_from_cart[0] if number_of_items_from_cart and number_of_items_from_cart[0] is not None else 0
 
 
     def retrieve_total_price_from_cart(self, cart_id: int) -> float:
@@ -116,7 +116,6 @@ class DatabaseManager:
             self.conn.commit()
         self._handle_frequency_and_quantity(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
         cart_id = self._retrieve_customer_cart_id(customer_email)
-        self._clear_shopping_cart(cart_id)
 
 
     def _clear_shopping_cart(self, cart_id: int) -> None:
@@ -241,6 +240,7 @@ class DatabaseManager:
         self._insert('ORDER_PLACED', customer_email, corresponding_cart_id, max_order_number + 1)
         self.conn.commit()
         self.insert_items_bought(customer_email, max_order_number + 1)
+        self._clear_shopping_cart(cart_id)
 
 
     """ Increment item's frequency and decrement item's quantity by number_of_items_bought """
@@ -290,6 +290,7 @@ class DatabaseManager:
     
     """ Returns the unique id of the item entry that got inserted """
     def insert_item(self, seller_email: str, quantity: int, price: float, name: str, item_type: str) -> None:
+        item_id = self.retrieve_max_item_id_by_seller(seller_email)
         self.cur.execute(
             """
             INSERT OR REPLACE INTO item(seller_email, item_id, quantity, price, name, type)

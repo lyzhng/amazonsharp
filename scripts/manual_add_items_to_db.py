@@ -40,7 +40,7 @@ manager.insert_login_info('login_info@email.com', 'a'*77, 'ADMIN')
 # Create a customer and user, give them a shopping_cart, and link them together in has_a_shopping_cart
 manager.insert_customer('customer@email.com', 'West Apartment A', '1234567890')
 manager.insert_customer('pchan@email.com', 'Mendy', '0987654321')
-manager.delete('CUSTOMER', " email = '{}' ".format('customer@email.com'))
+manager.insert_customer('praveen@email.com', 'New CS', '1234509876')
 # Create a seller and user
 manager.insert_seller('stevejobs@apple.com', 'Somewhere in California', '6316323333')
 # Create an item and put it in the inventory table
@@ -51,16 +51,16 @@ manager.insert_items_in_shopping_cart('customer@email.com', 'stevejobs@apple.com
 manager.insert_items_in_shopping_cart('customer@email.com', 'stevejobs@apple.com', 2, 2)
 manager.insert_items_in_shopping_cart('pchan@email.com', 'stevejobs@apple.com', 2, 1)
 manager.insert_items_in_shopping_cart('pchan@email.com', 'stevejobs@apple.com', 1, 1)
-# print_table('ITEMS_IN_SHOPPING_CART')
-# print_table('ORDERS')
-# # Customer makes an order, buying only 2 items
-# manager.insert_order('customer@email.com')
-# # manager.insert_order('pchan@email.com')
+print_table('SHOPPING_CART')
+# Customer makes an order, buying only 2 items
+manager.insert_order('customer@email.com')
+manager.insert_order('pchan@email.com')                
+# Delete customer after placing an order
+manager.delete('CUSTOMER', " email = '{}' ".format('customer@email.com'))
 
-# # print_table('CUSTOMER')
-# # print_table('SELLER')
-# # print_table('ITEM')
-# # print_table('INVENTORY')
-# # print_table('ORDERS')
-# print_table('ITEMS_IN_SHOPPING_CART')
-# print_table('SHOPPING_CART')
+print_table('SELLER')
+print_table('ITEM')
+print_table('INVENTORY')
+print_table('ORDERS')
+print_table('ITEMS_IN_SHOPPING_CART')
+print_table('SHOPPING_CART')

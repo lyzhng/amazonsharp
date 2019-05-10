@@ -71,6 +71,8 @@ ITEM_FREQUENCY = """
         frequency INTEGER DEFAULT 1 NOT NULL,
         PRIMARY KEY(seller_email, item_id),
         FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE
     )
 """
 
@@ -86,8 +88,8 @@ ITEMS_BOUGHT = """
             CHECK(number_of_items_bought >= 0),
         PRIMARY KEY(seller_email, item_id, order_number),
         FOREIGN KEY(seller_email, item_id) REFERENCES item(seller_email, item_id)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION,
         FOREIGN KEY(order_number) REFERENCES orders(order_number)
             ON DELETE NO ACTION
             ON UPDATE NO ACTION
@@ -142,6 +144,7 @@ HAS_SHOPPING_CART = """
             ON UPDATE CASCADE,
         FOREIGN KEY(cart_id) REFERENCES shopping_cart(cart_id)
             ON DELETE CASCADE
+            ON UPDATE NO ACTION
     )
 """
 
@@ -153,6 +156,8 @@ ORDERS = """
             CHECK(total_number_of_items >= 1),
         date_ordered DATE NOT NULL,
         FOREIGN KEY(customer_email) REFERENCES customer(email)
+            ON DELETE NO ACTION
+            ON UPDATE CASCADE
     )
 """
 
@@ -163,7 +168,7 @@ ORDER_PLACED = """
         order_number INTEGER NOT NULL,
         PRIMARY KEY(cart_id, order_number),
         FOREIGN KEY(customer_email) REFERENCES customer(email)
-            ON DELETE CASCADE
+            ON DELETE NO ACTION
             ON UPDATE CASCADE,
         FOREIGN KEY(cart_id) REFERENCES shopping_cart(cart_id)
             ON DELETE CASCADE
