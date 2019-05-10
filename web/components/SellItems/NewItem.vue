@@ -139,11 +139,14 @@ export default {
 			}
 		},
 		sendData() {
-			if (this.action === 'New' && (!imageUploaded)) {
+			if (this.action === 'New' && !imageUploaded) {
 				if (!imageUploading)
 					this.fileNotUploaded = true;
 				return;
 			}
+			
+			imageUploaded = false;
+			imageUploading = false;
 
 			var formData = new FormData();
 			formData.append('name', this.name);
@@ -156,7 +159,7 @@ export default {
 				formData.append('itemType', this.itemType);
 			}
 			else if (this.action == 'Edit') {
-				uploadURL = `/update_item/${this.sellerEmail}/${itemId}`;
+				uploadURL = `/update_item/${this.sellerEmail}/${this.itemId}`;
 			}
 
 			var xhr = new XMLHttpRequest();
@@ -180,12 +183,10 @@ export default {
 							'dialog': false,
 						});
 					}
-					imageUploaded = false;
-					imageUploading = false;
 				}
 			};
 		},
     },
-    props: ['action', 'name', 'price', 'imagePath', 'itemType', 'quantity', 'sellerEmail'],
+    props: ['action', 'name', 'price', 'imagePath', 'itemType', 'quantity', 'sellerEmail', 'itemId'],
 }
 </script>
