@@ -60,7 +60,7 @@ module.exports = {
         extensions: ['.js', '.es6', '.css', '.sass', '.scss', '.vue'],
     },
     plugins: [
-        new CleanPlugin(['public/components/']),
+        new CleanPlugin({verbose: true}),
         new CompressionPlugin(),
         new ManifestPlugin({
             writeToFileEmit: true,

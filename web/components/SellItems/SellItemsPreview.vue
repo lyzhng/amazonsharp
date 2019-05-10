@@ -55,6 +55,8 @@ export default {
 				this.quantity = event['quantity'];
 			if (event['dialog'] !== undefined)
 				this.dialog = event['dialog'];
+			if (event['imageModified'] === true)
+				window.location.reload(false);
 		},
     },
     props: ['name', 'price', 'imagePath', 'quantity', 'sellerEmail', 'itemId', 'itemPath'],

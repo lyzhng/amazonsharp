@@ -26,6 +26,12 @@ def cart():
 @SELLER_VIEWS.route('/upload_image/<seller_email>/<int:item_id>', methods=['POST'])
 @security.login_required(seller_required=True)
 def upload_image(seller_email: str, item_id: int):
+    image_path: str = os.path.join(__ROOT_PATH, 'amazonsharp/web/public/item_images')
+    images = [image for image in os.listdir(image_path)
+              if os.path.basename(image).startswith(f'{seller_email}_{item_id}.')]
+    while len(images) > 0:
+        os.remove(os.path.join(image_path, images.pop()))
+
     try:
         filename: str = flask.request.files.get('image').filename
         extension: str = filename[filename.rfind('.'):]
@@ -76,7 +82,6 @@ def delete_item(seller_email: str, item_id: int):
     image_path: str = os.path.join(__ROOT_PATH, 'amazonsharp/web/public/item_images')
     images = [image for image in os.listdir(image_path)
               if os.path.basename(image).startswith(f'{seller_email}_{item_id}.')]
-    print(images)
     while len(images) > 0:
         os.remove(os.path.join(image_path, images.pop()))
 

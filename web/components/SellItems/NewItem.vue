@@ -18,7 +18,7 @@
 					<v-text-field label="Category" v-model="itemType" required></v-text-field>
 				</v-layout>
 				<v-layout row>
-					<upload-btn class="ma-0 pa-0" title="Upload Image" accept="image/*" :fileChangedCallback="fileUpload" ></upload-btn>
+					<upload-btn class="ma-0 pa-0" title="Upload Image" accept="image/*" @file-update="fileUpload" ></upload-btn>
 				</v-layout>
             </v-layout>
         </v-container>
@@ -80,14 +80,14 @@
 <script>
 import UploadButton from 'vuetify-upload-button';
 
-var imageUploading = false;
-var imageUploaded = false;
-var itemId = undefined;
-
 export default {
     name: 'NewItemComponent',
     components: {'upload-btn': UploadButton},
     data: () => ({
+		imageModified: false,
+		imageUploading: false,
+		imageUploaded: false,
+
 		fileTypeNotMatch: false,
 		fileSizeTooBig: false,
 		fileNotUploaded: false,
@@ -102,8 +102,25 @@ export default {
 		removeFileNotUploadedDialog() {
 			this.fileNotUploaded = false;
 		},
+		uploadImage(sellerEmail, file) {
+			var formData = new FormData();
+			formData.append('image', file);
+
+			var uploadURL = `/upload_image/${sellerEmail}/${this.itemId}`;
+
+			var self = this;
+			var uploadImageXHR = new XMLHttpRequest();
+			uploadImageXHR.open('POST', uploadURL, true);
+			uploadImageXHR.send(formData);
+			uploadImageXHR.onreadystatechange = function() {
+				if (uploadImageXHR.readyState == 4 && uploadImageXHR.status >= 200 && uploadImageXHR.status < 300) {
+					self.imageUploaded = true;
+				}
+			};
+		},
 		fileUpload(file) {
-			imageUploading = true;
+			this.imageModified = true;
+			this.imageUploading = true;
 
 			if (!file.type.match('image.*')) {
 				// display type error
@@ -115,38 +132,30 @@ export default {
 				return;
 			}
 
-			var self = this;
-			var xhr = new XMLHttpRequest();
-			xhr.open('POST', `/get_item_id/${this.sellerEmail}`, true);
-			xhr.send();
-			xhr.onreadystatechange = function() {
-				if (xhr.readyState == 4 && xhr.status >= 200 && xhr.status < 300) {
-					itemId = JSON.parse(xhr.responseText);
-					var formData = new FormData();
-					formData.append('image', file);
-
-					var uploadURL = `/upload_image/${self.sellerEmail}/${itemId}`;
-
-					var uploadImageXHR = new XMLHttpRequest();
-					uploadImageXHR.open('POST', uploadURL, true);
-					uploadImageXHR.send(formData);
-					uploadImageXHR.onreadystatechange = function() {
-						if (uploadImageXHR.readyState == 4 && uploadImageXHR.status >= 200 && uploadImageXHR.status < 300) {
-							imageUploaded = true;		
-						}
+			if (this.action === 'New') {
+				var self = this;
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST', `/get_item_id/${this.sellerEmail}`, true);
+				xhr.send();
+				xhr.onreadystatechange = function() {
+					if (xhr.readyState == 4 && xhr.status >= 200 && xhr.status < 300) {
+						self.itemId = JSON.parse(xhr.responseText);
+						self.uploadImage(self.sellerEmail, file);
 					};
-				};
+				}
+			} else if (this.action === 'Edit') {
+				this.uploadImage(this.sellerEmail, file);
 			}
 		},
 		sendData() {
-			if (this.action === 'New' && !imageUploaded) {
-				if (!imageUploading)
+			if (this.action === 'New' && !this.imageUploaded) {
+				if (!this.imageUploading)
 					this.fileNotUploaded = true;
 				return;
 			}
 			
-			imageUploaded = false;
-			imageUploading = false;
+			this.imageUploaded = false;
+			this.imageUploading = false;
 
 			var formData = new FormData();
 			formData.append('name', this.name);
@@ -171,7 +180,7 @@ export default {
 				if (xhr.readyState == 4 && xhr.status >= 200 && xhr.status < 300) {
 					if (self.action === 'New') {
 						self.$emit('add_item', {
-							'itemId': itemId,
+							'itemId': self.itemId,
 							'sellerEmail': self.sellerEmail, 
 							'dialog': false
 						});
@@ -181,8 +190,10 @@ export default {
 							'price': self.price,
 							'quantity': self.quantity,
 							'dialog': false,
+							'imageModified': self.imageModified,
 						});
 					}
+					self.imageModified = false;
 				}
 			};
 		},
