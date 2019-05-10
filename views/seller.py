@@ -72,6 +72,14 @@ def delete_item(seller_email: str, item_id: int):
         # Foreign key on delete will take care of inventory's entry 
     except(TypeError, AttributeError):
         return '', http.HTTPStatus.BAD_REQUEST
+
+    image_path: str = os.path.join(__ROOT_PATH, 'amazonsharp/web/public/item_images')
+    images = [image for image in os.listdir(image_path)
+              if os.path.basename(image).startswith(f'{seller_email}_{item_id}.')]
+    print(images)
+    while len(images) > 0:
+        os.remove(os.path.join(image_path, images.pop()))
+
     return '', http.client.NO_CONTENT
 
 

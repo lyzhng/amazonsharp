@@ -104,16 +104,22 @@ export default {
 
 		deleteItem(itemId) {
 			if (itemId !== undefined) {
+				var self = this;
 				var xhr = new XMLHttpRequest();
 				xhr.open("POST", `/delete_item/${this.username}/${itemId}`, true);
 				xhr.send();
-
-				for(var index in this.items) {
-					if (this.items[index] === itemId) {
-						break;
+				xhr.onreadystatechange = function() {
+					if (xhr.readyState == 4 && xhr.status >= 200 && xhr.status < 300) {
+						for(var index in self.items) {
+							console.log(self.items[index]);
+							if (self.items[index][1] === itemId) {
+								console.log("Deleting item: " + self.items[index])
+								break;
+							}
+						}
+						self.items.splice(index, 1);
 					}
 				}
-				this.items.splice(index, 1);
 			}
 		}
     },
