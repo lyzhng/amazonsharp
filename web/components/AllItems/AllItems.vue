@@ -116,7 +116,7 @@
 
 	 				<v-layout row wrap align-end>
 	  					<v-flex v-for="(item, j) in items" :key="j" xs4 sm3 md2>
-	  						<item-preview-component :seller="item[0]" :name="item[2]" :price="item[4]" :popularity="-1" :image-path="'/get_image/' + item[0] + '/' + item[1]"></item-preview-component>
+	  						<item-preview-component :seller="item[0]" :name="item[2]" :price="item[4]" :popularity="-1" :image-path="'/get_image/' + item[0] + '/' + item[1]" :item-path="'/item/' + item[0] + '/' + item[1]"></item-preview-component>
 	  					</v-flex>
 	  				</v-layout>
 				</v-layout>

@@ -2,7 +2,9 @@
 <v-card light height="200px">
 	<v-layout row align-center fill-height>
 		<v-flex xs4 md3>
-			<v-img class="ma-4" :src="imagePath" height="156px"></v-img>
+			<a :href="itemPath">
+				<v-img class="ma-4" :src="imagePath" height="156px"></v-img>
+			</a>
 		</v-flex>
 		<v-flex xs5 md5>
 			<v-card-title primary-title>
@@ -55,6 +57,6 @@ export default {
 				this.dialog = event['dialog'];
 		},
     },
-    props: ['name', 'price', 'imagePath', 'quantity', 'sellerEmail', 'itemId'],
+    props: ['name', 'price', 'imagePath', 'quantity', 'sellerEmail', 'itemId', 'itemPath'],
 }
 </script>
