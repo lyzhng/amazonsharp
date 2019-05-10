@@ -1,6 +1,8 @@
 <template>
 <v-card dark>
-	<v-img :src="this.imagePath" height="400px" contain></v-img>
+	<a :href="this.itemPath">
+		<v-img :src="this.imagePath" height="400px" contain></v-img>
+	</a>
 	<v-card-title primary-title>
 		<div>
 			<h3 class="headline mb-0">{{ this.name }}</h3>
@@ -22,6 +24,6 @@ export default {
 	methods: {
 
 	},
-	props: ['name', 'seller', 'price', 'popularity', 'imagePath'],
+	props: ['name', 'seller', 'price', 'popularity', 'imagePath', 'itemPath'],
 }
 </script>

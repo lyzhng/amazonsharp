@@ -45,7 +45,7 @@
 					<v-divider></v-divider>
 	  				<v-flex v-for="(item, i) in items" :key="i">
 	  					<sell-items-preview-component :seller-email="item[0]" :item-id="item[1]" :name="item[2]"
-						:price="item[3]" :image-path="'/get_image/' + item[0] + '/' + item[1]" :quantity="item[4]" @delete_item="deleteItem">
+						:price="item[3]" :image-path="'/get_image/' + item[0] + '/' + item[1]" :quantity="item[4]" :item-path="'/item/' + item[0] + '/' + item[1]" @delete_item="deleteItem">
 						</sell-items-preview-component>
 	  				</v-flex>
 	  			</v-layout>

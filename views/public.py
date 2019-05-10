@@ -7,9 +7,12 @@ if __ROOT_PATH not in sys.path:
     sys.path.append(__ROOT_PATH)
 
 import flask
+from lib.config import config
+from lib.db_manager import db_manager
 from lib.security import auth_manager, security
 
 PUBLIC_VIEWS = flask.Blueprint('public_views', __name__)
+__DATABASE = db_manager.DatabaseManager(config.get_value(config.DB_NAME))
 
 
 @PUBLIC_VIEWS.route('/')
@@ -40,3 +43,16 @@ def seller(seller_email: str):
     return flask.render_template('seller_items.html', is_logged_in=security.is_logged_in(),
                                  username=username,
                                  is_customer=auth_manager.is_customer(username))
+
+
+@PUBLIC_VIEWS.route('/item/<seller_email>/<int:item_id>')
+def item(seller_email, item_id):
+    username: str = flask.session.get('username') or ''
+    item = __DATABASE.retrieve_item_info(seller_email, item_id)
+    return flask.render_template('item.html', is_logged_in=security.is_logged_in(),
+                                 username=username,
+                                 is_customer=auth_manager.is_customer(username),
+                                 name=item[0],
+                                 price=item[1],
+                                 quantity=item[2],
+                                 image_path=f'/get_image/{username}/{item_id}')
