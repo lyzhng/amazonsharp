@@ -153,6 +153,7 @@ export default {
 		if (this.sellers === null) {
             this.sellers = [];
         }
+	 	console.log(this.sellers);
 	},
     methods: {
     },

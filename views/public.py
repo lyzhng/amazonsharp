@@ -41,7 +41,7 @@ def sellers():
 def seller(seller_email: str):
     username: str = flask.session.get('username') or ''
     return flask.render_template('seller_items.html', is_logged_in=security.is_logged_in(),
-                                 username=username,
+                                 username=seller_email,
                                  is_customer=auth_manager.is_customer(username))
 
 

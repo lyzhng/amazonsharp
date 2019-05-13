@@ -56,9 +56,9 @@ class DatabaseManager:
             """
             SELECT SUM(number_of_items_bought)
             FROM items_in_shopping_cart
-            WHERE cart_id = {}
-            """
-            .format(cart_id)
+            WHERE cart_id = ?
+            """,
+            (cart_id,)
         )
         number_of_items_from_cart = self.cur.fetchone()
         return number_of_items_from_cart[0] if number_of_items_from_cart is not None else 0
@@ -70,9 +70,9 @@ class DatabaseManager:
             SELECT ROUND(SUM(price))
             FROM items_in_shopping_cart INNER JOIN item
             ON items_in_shopping_cart.seller_email = item.seller_email AND items_in_shopping_cart.item_id = item.item_id
-            WHERE items_in_shopping_cart.cart_id = {}
-            """
-            .format(cart_id)
+            WHERE items_in_shopping_cart.cart_id = ?
+            """,
+            (cart_id,)
         )
         total_price = self.cur.fetchone()
         return total_price[0] if total_price is not None else 0
@@ -93,9 +93,9 @@ class DatabaseManager:
         self.cur.execute(
             """
             INSERT INTO login_info(email, password, role)
-            VALUES('{}', '{}', '{}')
-            """
-            .format(email, password, role)
+            VALUES(?, ?, ?)
+            """,
+            (email, password, role)
         )
         self.conn.commit()
 
@@ -106,9 +106,9 @@ class DatabaseManager:
         self.cur.execute(
             """
             INSERT INTO items_bought(seller_email, item_id, order_number, price, name, type, number_of_items_bought)
-            VALUES('{}', {}, {}, {}, '{}', '{}', {})
-            """
-            .format(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
+            VALUES(?, ?, ?, ?, ?, ?, ?)
+            """,
+            (seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
         )
         self.conn.commit()
         self._handle_frequency_and_quantity(seller_email, item_id, order_number, price, name, item_type, number_of_items_bought)
@@ -119,9 +119,9 @@ class DatabaseManager:
         self.cur.execute(
             """
             INSERT INTO user
-            VALUES('{}', '{}', '{}')
-            """
-            .format(first, last, email)
+            VALUES(?, ?, ?)
+            """,
+            (first, last, email)
         )
         self.conn.commit()        
 
@@ -132,9 +132,9 @@ class DatabaseManager:
         self.cur.execute(
             """
             INSERT INTO customer
-            VALUES('{}', '{}', '{}')
-            """
-            .format(email, address, phone_number)
+            VALUES(?, ?, ?)
+            """,
+            (email, address, phone_number)
         )
         self.conn.commit()
         self._insert_empty_shopping_cart(email)
@@ -146,9 +146,9 @@ class DatabaseManager:
         self.cur.execute(
             """
             INSERT INTO seller
-            VALUES('{}', '{}', '{}')
-            """
-            .format(email, address, phone_number)
+            VALUES(?, ?, ?)
+            """,
+            (email, address, phone_number)
         )
         self.conn.commit()
 
@@ -170,18 +170,18 @@ class DatabaseManager:
             ON
                 items_in_shopping_cart.seller_email = item.seller_email AND 
                 items_in_shopping_cart.item_id = item.item_id
-            WHERE cart_id = {}
-            """
-            .format(cart_id)
+            WHERE cart_id = ?
+            """,
+            (cart_id,)
         )
         shopping_cart_values = self.cur.fetchone()
         self.cur.execute(
             """
             UPDATE shopping_cart
-            SET total_number_of_items = {}, total_price = {}
-            WHERE cart_id = {}
-            """
-            .format(shopping_cart_values[0], shopping_cart_values[1], cart_id)
+            SET total_number_of_items = ?, total_price = ?
+            WHERE cart_id = ?
+            """,
+            (shopping_cart_values[0], shopping_cart_values[1], cart_id)
         )
         self.conn.commit()
 
@@ -190,9 +190,9 @@ class DatabaseManager:
         self.cur.execute(
             """
             INSERT INTO items_in_shopping_cart(cart_id, seller_email, item_id, number_of_items_bought)
-            VALUES({}, '{}', {}, {})
-            """
-            .format(cart_id, seller_email, item_id, number_of_items_bought)
+            VALUES(?, ?, ?, ?)
+            """,
+            (cart_id, seller_email, item_id, number_of_items_bought)
         )
         self.conn.commit()
 
@@ -205,9 +205,9 @@ class DatabaseManager:
         self.cur.execute(
             """
             INSERT INTO orders(order_number, customer_email, total_number_of_items, date_ordered)
-            VALUES({}, '{}', {}, '{}')
-            """
-            .format(max_order_number + 1, customer_email, total_number_of_items, date_ordered)
+            VALUES(?, ?, ?, ?)
+            """,
+            (max_order_number + 1, customer_email, total_number_of_items, date_ordered)
         )
         self.conn.commit()
         self._insert('ORDER_PLACED', customer_email, corresponding_cart_id, max_order_number + 1)
@@ -220,15 +220,13 @@ class DatabaseManager:
         self.cur.execute(
             """
             INSERT INTO item_frequency(seller_email, item_id, frequency)
-            VALUES('{}', {}, {})
+            VALUES(?, ?, ?)
             ON CONFLICT(seller_email, item_id) 
             DO UPDATE
             SET frequency = frequency + {}
             """
-            .format(
-                seller_email, item_id, number_of_items_bought,
-                number_of_items_bought
-            )
+            .format(number_of_items_bought),
+            (seller_email, item_id, number_of_items_bought)
         )
         self.conn.commit()
         self.cur.execute(
@@ -265,19 +263,19 @@ class DatabaseManager:
         self.cur.execute(
             """
             INSERT OR REPLACE INTO item(seller_email, item_id, quantity, price, name, type)
-            VALUES('{}', {}, {}, {}, '{}', '{}')
-            """
-            .format(seller_email, item_id, quantity, price, name, item_type)
+            VALUES(?, ?, ?, ?, ?, ?)
+            """,
+            (seller_email, item_id, quantity, price, name, item_type)
         )
         self.conn.commit()
         self.cur.execute(
             """
             INSERT INTO inventory(seller_email, item_id)
-            VALUES('{}', {})
+            VALUES(?, ?)
             ON CONFLICT(seller_email, item_id)
             DO NOTHING
-            """
-            .format(seller_email, item_id)
+            """,
+            (seller_email, item_id)
         )
         self.conn.commit()
         
@@ -293,10 +291,10 @@ class DatabaseManager:
         self.cur.execute(
             """
             UPDATE item
-            SET name = '{}', quantity = {}, price = {}
-            WHERE seller_email = '{}' AND item_id = {}
-            """
-            .format(
+            SET name = ?, quantity = ?, price = ?
+            WHERE seller_email = ? AND item_id = ?
+            """,
+            (
                 new_name, new_quantity, new_price,
                 seller_email, item_id
             )
@@ -358,9 +356,9 @@ class DatabaseManager:
                     AND item_frequency.item_id = items_bought.item_id
                 GROUP BY item_frequency.seller_email, item_frequency.item_id
                 ORDER BY frequency DESC
-                LIMIT {}
-                """
-                .format(row_count)
+                LIMIT ?
+                """,
+                (row_count,)
             )
             try:
                 return self.cur.fetchall()
@@ -411,9 +409,9 @@ class DatabaseManager:
                 """
                 SELECT seller_email, item_id, name, price, quantity
                 FROM item
-                WHERE seller_email = '{}'
-                """
-                .format(seller_email)
+                WHERE seller_email = ?
+                """,
+                (seller_email,)
             )
             try:
                 return self.cur.fetchall()
@@ -428,9 +426,9 @@ class DatabaseManager:
                 """
                 SELECT item.name, item.price, item.quantity
                 FROM item
-                WHERE item.seller_email = '{}' AND item.item_id = {}
-                """
-                .format(seller_email, item_id)
+                WHERE item.seller_email = ? AND item.item_id = ?
+                """,
+                (seller_email, item_id)
             )
             try:
                 return self.cur.fetchone()
@@ -462,10 +460,10 @@ class DatabaseManager:
             """
             SELECT cart_id
             FROM has_shopping_cart
-            WHERE customer_email = '{}'
+            WHERE customer_email = ?
             LIMIT 1
-            """
-            .format(customer_email)
+            """,
+            (customer_email,)
         )
         cart_id_entry = self.cur.fetchone()
         return cart_id_entry[0] if cart_id_entry is not None else 0
@@ -481,9 +479,9 @@ class DatabaseManager:
             """
             SELECT SUM(number_of_items_bought)
             FROM items_bought
-            WHERE order_number = {}
-            """
-            .format(order_number)
+            WHERE order_number = ?
+            """,
+            (order_number,)
         )
         result = self.cur.fetchone()
         return result[0] if result is not None else 0
@@ -495,11 +493,11 @@ class DatabaseManager:
             """
             SELECT item_id 
             FROM inventory
-            WHERE seller_email = '{}'
+            WHERE seller_email = ?
             ORDER BY item_id DESC
             LIMIT 1
-            """
-            .format(seller_email)
+            """,
+            (seller_email,)
         )
         current_max = self.cur.fetchone()
         return current_max[0] if current_max is not None else 0
@@ -541,7 +539,7 @@ class DatabaseManager:
 
     """ General DELETE function for user """
     def delete_user(self, seller_email: str) -> None:
-        self.delete('USER', " seller_email = '{}' ".format(seller_email))
+        self.delete('USER', " seller_email = '?' ".format(seller_email))
 
 
     """ General DELETE function for item """
@@ -551,7 +549,7 @@ class DatabaseManager:
 
     """ General DROP TABLE function """
     def delete_table(self, table_name: str) -> None:
-        self.cur.execute('DROP TABLE {}'.format(table_name))
+        self.cur.execute('DROP TABLE ?', (table_name,))
         self.cur.commit()
 
 
